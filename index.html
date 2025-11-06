@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>YouTube Multiplayer</title>
 <style>
-/* --- Global Reset & Theme --- */
-*{margin:0;padding:0;box-sizing:border-box;}
-body {
+*{margin:0;padding:0;box-sizing:border-box}
+body{
   font-family:"Inter","Segoe UI",Roboto,sans-serif;
-  background-color:#000;
+  background:#000;
   color:#eee;
   display:flex;
   flex-direction:column;
   min-height:100vh;
 }
 
-/* --- Header / Controls --- */
-header {
-  background-color:#111;
+/* Header */
+header{
+  background:#111;
   border-bottom:1px solid #222;
   padding:0.8rem 1rem;
   display:flex;
@@ -27,107 +26,61 @@ header {
   justify-content:space-between;
   gap:0.5rem;
 }
-header h1 {
-  font-size:1.1rem;
-  font-weight:500;
-  color:#e5e5e5;
+header h1{font-size:1.1rem;font-weight:500;color:#e0e0e0}
+.controls{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center}
+input[type=text]{
+  background:#161616;border:1px solid #333;color:#f5f5f5;
+  border-radius:4px;padding:0.45rem 0.7rem;width:240px
 }
+input[type=text]:focus{border-color:#666;outline:none}
+button{
+  background:#222;color:#eee;border:none;border-radius:4px;
+  padding:0.5rem 1rem;cursor:pointer;font-weight:500
+}
+button:hover{background:#333}
+.range-wrap{display:flex;align-items:center;gap:0.4rem;color:#aaa;font-size:0.85rem}
+input[type=range]{accent-color:#555;cursor:pointer;width:120px}
 
-.controls {
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:0.5rem;
-}
-input[type="text"] {
-  background-color:#151515;
-  border:1px solid #333;
-  color:#f0f0f0;
-  border-radius:4px;
-  padding:0.45rem 0.7rem;
-  width:240px;
-  font-size:0.9rem;
-}
-input[type="text"]:focus{border-color:#666;outline:none;}
-
-button {
-  background-color:#222;
-  color:#f0f0f0;
-  border:none;
-  border-radius:4px;
-  padding:0.5rem 1rem;
-  cursor:pointer;
-  font-weight:500;
-  transition:background-color 0.2s;
-}
-button:hover {background-color:#333;}
-
-.range-wrap {
-  display:flex;
-  align-items:center;
-  gap:0.4rem;
-  font-size:0.85rem;
-  color:#aaa;
-}
-input[type="range"] {
-  accent-color:#555;
-  cursor:pointer;
-  width:120px;
-}
-
-/* --- Grid Section --- */
-main {
-  flex:1;
-  width:100%;
-  background-color:#000;
-}
-.video-grid {
+/* Grid */
+main{flex:1;width:100%}
+.video-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,300px),1fr));
   gap:0;
   width:100%;
 }
-.video-container {
+.video-container{
   position:relative;
   overflow:hidden;
-  background-color:#0a0a0a;
+  background:#080808;
   border:1px solid #111;
 }
-iframe {
+iframe{
   width:100%;
-  aspect-ratio:16/9;
+  height:auto;
   display:block;
+  aspect-ratio:16/9;
   border:none;
 }
 
-/* --- Action Buttons --- */
-.action {
-  position:absolute;
-  top:10px;
-  width:30px;height:30px;
-  background-color:rgba(0,0,0,0.6);
-  display:flex;align-items:center;justify-content:center;
-  border-radius:4px;
-  opacity:0;transition:opacity 0.2s;
+/* Buttons */
+.action{
+  position:absolute;top:10px;width:30px;height:30px;
+  background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;
+  border-radius:4px;opacity:0;transition:opacity .2s;
 }
-.video-container:hover .action {opacity:1;}
-.action.move {left:10px; cursor:grab;}
-.action.remove {right:10px; cursor:pointer;}
-.action svg {width:18px;height:18px;fill:#f5f5f5;}
+.video-container:hover .action{opacity:1}
+.action.move{left:10px;cursor:grab}
+.action.remove{right:10px;cursor:pointer}
+.action svg{width:18px;height:18px;fill:#f5f5f5}
 
-/* --- Placeholder --- */
-.placeholder {
-  text-align:center;
-  padding:2rem;
-  color:#666;
-  font-style:italic;
-}
+/* Placeholder */
+.placeholder{text-align:center;padding:2rem;color:#666;font-style:italic}
 
-/* --- Mobile adjustments --- */
-@media (max-width:600px){
-  header{flex-direction:column; align-items:flex-start;}
-  .controls{width:100%;}
-  input[type="text"]{width:100%;}
+@media(max-width:600px){
+  header{flex-direction:column;align-items:flex-start}
+  .controls{width:100%}
+  input[type=text]{width:100%}
 }
 </style>
 </head>
@@ -137,14 +90,14 @@ iframe {
     <div class="controls">
       <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
       <button id="addBtn">Add</button>
-      <div class="range-wrap">
-        Zoom: <input id="sizeRange" type="range" min="200" max="600" value="320">
+      <div class="range-wrap">Zoom:
+        <input id="sizeRange" type="range" min="220" max="600" value="320">
       </div>
     </div>
   </header>
 
   <main>
-    <div class="video-grid" id="videoGrid"></div>
+    <div id="videoGrid" class="video-grid"></div>
     <div id="placeholder" class="placeholder">No videos yet — paste a URL above.</div>
   </main>
 
@@ -158,97 +111,103 @@ const placeholder=document.getElementById("placeholder");
 let videos=[];
 
 function extractVideoId(url){
-  const regExp=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
-  const match=url.match(regExp);
-  return match?match[1]:null;
+  const re=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
+  const m=url.match(re);
+  return m?m[1]:null;
 }
 
-function saveVideos(){
-  localStorage.setItem("yt_wall_videos",JSON.stringify(videos));
+function createVideoContainer(id,i){
+  const c=document.createElement("div");
+  c.className="video-container";
+  c.draggable=true;
+  c.dataset.index=i;
+
+  const iframe=document.createElement("iframe");
+  iframe.src=`https://www.youtube.com/embed/${id}`;
+  iframe.allowFullscreen=true;
+
+  const move=document.createElement("div");
+  move.className="action move";
+  move.innerHTML=`<svg viewBox="0 0 24 24">
+    <path d="M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/></svg>`;
+
+  const x=document.createElement("div");
+  x.className="action remove";
+  x.innerHTML=`<svg viewBox="0 0 24 24">
+    <path d="M18 6L6 18M6 6l12 12" stroke="#f5f5f5" stroke-width="2" stroke-linecap="round"/>
+  </svg>`;
+  x.addEventListener("click",()=>{
+    videos.splice(i,1);
+    save(); render();
+  });
+
+  // simple drag order change
+  c.addEventListener("dragstart",e=>{
+    e.dataTransfer.setData("text/plain",i);
+    c.style.opacity="0.4";
+  });
+  c.addEventListener("dragend",()=>c.style.opacity="1");
+  c.addEventListener("dragover",e=>e.preventDefault());
+  c.addEventListener("drop",e=>{
+    e.preventDefault();
+    const from=e.dataTransfer.getData("text/plain");
+    const to=i;
+    const moved=videos.splice(from,1)[0];
+    videos.splice(to,0,moved);
+    save(); render();
+  });
+
+  c.appendChild(move);
+  c.appendChild(x);
+  c.appendChild(iframe);
+  return c;
 }
-function loadVideos(){
-  const saved=localStorage.getItem("yt_wall_videos");
-  if(saved) videos=JSON.parse(saved);
+
+function save(){localStorage.setItem("yt_stable_videos",JSON.stringify(videos));}
+function load(){
+  const s=localStorage.getItem("yt_stable_videos");
+  if(s) videos=JSON.parse(s);
 }
 
 function render(){
+  if(videos.length===0){placeholder.style.display="block";grid.innerHTML="";return;}
+  placeholder.style.display="none";
+
+  // ensure existing DOM and new list stay synced
   grid.innerHTML="";
-  placeholder.style.display=videos.length===0?"block":"none";
   videos.forEach((id,i)=>{
-    const c=document.createElement("div");
-    c.className="video-container";
-    c.draggable=true;
-    c.dataset.index=i;
-
-    const iframe=document.createElement("iframe");
-    iframe.src=`https://www.youtube.com/embed/${id}`;
-    iframe.allowFullscreen=true;
-
-    const moveHandle=document.createElement("div");
-    moveHandle.className="action move";
-    moveHandle.innerHTML=`<svg viewBox="0 0 24 24">
-      <path d="M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/>
-    </svg>`;
-
-    const removeBtn=document.createElement("div");
-    removeBtn.className="action remove";
-    removeBtn.innerHTML=`<svg viewBox="0 0 24 24">
-      <path d="M18 6L6 18M6 6l12 12" stroke="#f5f5f5" stroke-width="2" stroke-linecap="round"/>
-    </svg>`;
-    removeBtn.addEventListener("click",()=>{
-      videos.splice(i,1);
-      saveVideos(); render();
-    });
-
-    // Drag reorder
-    c.addEventListener("dragstart",e=>{
-      e.dataTransfer.setData("text/plain",i);
-      c.style.opacity="0.4";
-    });
-    c.addEventListener("dragend",()=>c.style.opacity="1");
-    c.addEventListener("dragover",e=>e.preventDefault());
-    c.addEventListener("drop",e=>{
-      e.preventDefault();
-      const from=e.dataTransfer.getData("text/plain");
-      const to=i;
-      const moved=videos.splice(from,1)[0];
-      videos.splice(to,0,moved);
-      saveVideos(); render();
-    });
-
-    c.appendChild(moveHandle);
-    c.appendChild(removeBtn);
-    c.appendChild(iframe);
-    grid.appendChild(c);
+    const vid=createVideoContainer(id,i);
+    grid.appendChild(vid);
   });
 }
 
 addBtn.addEventListener("click",()=>{
   const id=extractVideoId(videoUrl.value.trim());
   if(!id){alert("Please enter a valid YouTube URL");return;}
-  videos.push(id);
-  saveVideos(); render();
+  videos.push(id); save();
+  // Append only the new one
+  const vid=createVideoContainer(id,videos.length-1);
+  grid.appendChild(vid);
+  placeholder.style.display="none";
   videoUrl.value="";
 });
-videoUrl.addEventListener("keypress",e=>{ if(e.key==="Enter") addBtn.click(); });
+
+videoUrl.addEventListener("keypress",e=>{if(e.key==="Enter")addBtn.click();});
 
 sizeRange.addEventListener("input",()=>{
   const val=sizeRange.value;
   grid.style.setProperty("--vidWidth",val+"px");
-  localStorage.setItem("yt_wall_size",val);
+  localStorage.setItem("yt_stable_size",val);
 });
 
 function initSize(){
-  const stored=localStorage.getItem("yt_wall_size");
-  const val=stored||sizeRange.value;
-  sizeRange.value=val;
-  grid.style.setProperty("--vidWidth",val+"px");
+  const s=localStorage.getItem("yt_stable_size");
+  const v=s||sizeRange.value;
+  sizeRange.value=v;
+  grid.style.setProperty("--vidWidth",v+"px");
 }
 
-/* Boot */
-loadVideos();
-initSize();
-render();
+load();initSize();render();
 </script>
 </body>
 </html>
