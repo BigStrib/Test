@@ -1,84 +1,254 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed YouTube Embed - Referrer Policy Applied</title>
-    <!-- Load Tailwind CSS for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            /* Standard 16:9 aspect ratio */
-            padding-bottom: 56.25%; 
-            height: 0;
-        }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YouTube Multiplayer</title>
+<style>
+/* --- Global Reset & Theme --- */
+*{margin:0;padding:0;box-sizing:border-box;}
+body {
+  font-family:"Inter","Segoe UI",Roboto,sans-serif;
+  background-color:#000;
+  color:#eee;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+
+/* --- Header / Controls --- */
+header {
+  background-color:#111;
+  border-bottom:1px solid #222;
+  padding:0.8rem 1rem;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.5rem;
+}
+header h1 {
+  font-size:1.1rem;
+  font-weight:500;
+  color:#e5e5e5;
+}
+
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:0.5rem;
+}
+input[type="text"] {
+  background-color:#151515;
+  border:1px solid #333;
+  color:#f0f0f0;
+  border-radius:4px;
+  padding:0.45rem 0.7rem;
+  width:240px;
+  font-size:0.9rem;
+}
+input[type="text"]:focus{border-color:#666;outline:none;}
+
+button {
+  background-color:#222;
+  color:#f0f0f0;
+  border:none;
+  border-radius:4px;
+  padding:0.5rem 1rem;
+  cursor:pointer;
+  font-weight:500;
+  transition:background-color 0.2s;
+}
+button:hover {background-color:#333;}
+
+.range-wrap {
+  display:flex;
+  align-items:center;
+  gap:0.4rem;
+  font-size:0.85rem;
+  color:#aaa;
+}
+input[type="range"] {
+  accent-color:#555;
+  cursor:pointer;
+  width:120px;
+}
+
+/* --- Grid Section --- */
+main {
+  flex:1;
+  width:100%;
+  background-color:#000;
+}
+.video-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,300px),1fr));
+  gap:0;
+  width:100%;
+}
+.video-container {
+  position:relative;
+  overflow:hidden;
+  background-color:#0a0a0a;
+  border:1px solid #111;
+}
+iframe {
+  width:100%;
+  aspect-ratio:16/9;
+  display:block;
+  border:none;
+}
+
+/* --- Action Buttons --- */
+.action {
+  position:absolute;
+  top:10px;
+  width:30px;height:30px;
+  background-color:rgba(0,0,0,0.6);
+  display:flex;align-items:center;justify-content:center;
+  border-radius:4px;
+  opacity:0;transition:opacity 0.2s;
+}
+.video-container:hover .action {opacity:1;}
+.action.move {left:10px; cursor:grab;}
+.action.remove {right:10px; cursor:pointer;}
+.action svg {width:18px;height:18px;fill:#f5f5f5;}
+
+/* --- Placeholder --- */
+.placeholder {
+  text-align:center;
+  padding:2rem;
+  color:#666;
+  font-style:italic;
+}
+
+/* --- Mobile adjustments --- */
+@media (max-width:600px){
+  header{flex-direction:column; align-items:flex-start;}
+  .controls{width:100%;}
+  input[type="text"]{width:100%;}
+}
+</style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-
-    <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl max-w-3xl w-full border-t-4 border-teal-500">
-        
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">
-            YouTube Embed Artifact
-        </h1>
-        
-        <p class="text-gray-600 mb-8">
-            This code uses the recommended fixes (<code>youtube-nocookie.com</code> and <code>referrerPolicy</code>), but if the video still shows Error 153, you must apply the **Server-Side Fix** outlined below to your website's hosting environment.
-        </p>
-
-        <!-- Video Container -->
-        <div class="video-container rounded-lg overflow-hidden shadow-xl ring-2 ring-teal-500">
-            <!-- 
-                FIXES APPLIED: 
-                1. Uses the privacy-enhanced domain: www.youtube-nocookie.com
-                2. Explicitly sets the client-side referrer policy: referrerpolicy="strict-origin-when-cross-origin" 
-            -->
-            <iframe 
-                src="https://www.youtube-nocookie.com/embed/dbvVUL_pWuo" 
-                title="🔴LIVE: Chasing First Responders VIEWER+DISCRETION" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerpolicy="strict-origin-when-cross-origin" 
-                allowfullscreen>
-            </iframe>
-        </div>
-
-        <h2 class="text-2xl font-semibold text-teal-700 mt-10 mb-4">
-            Critical Server-Side Fix (For your external website)
-        </h2>
-        
-        <p class="text-gray-700 mb-4">
-            If the video fails, the browser/server is likely overriding your `<iframe>` attribute. You need to configure your web server to send the following **HTTP header** with every request for your HTML page:
-        </p>
-        
-        <pre class="bg-gray-800 text-yellow-300 p-4 rounded-lg text-sm overflow-x-auto select-all">
-Content-Security-Policy: frame-ancestors 'self' *.youtube.com;
-Referrer-Policy: strict-origin-when-cross-origin
-        </pre>
-        
-        <p class="text-sm text-gray-500 mt-4">
-            How you add this depends on your hosting:
-            <ul class="list-disc ml-6 mt-2 space-y-1 text-gray-700">
-                <li><strong class="font-medium">Apache (.htaccess):</strong> Use <code>Header set Referrer-Policy "strict-origin-when-cross-origin"</code></li>
-                <li><strong class="font-medium">Nginx (.conf):</strong> Use <code>add_header Referrer-Policy "strict-origin-when-cross-origin";</code></li>
-                <li><strong class="font-medium">Modern Hosting (e.g., Vercel, Netlify):</strong> Configure it in your deployment settings or configuration files (like <code>vercel.json</code>).</li>
-            </ul>
-        </p>
-        
+<body>
+  <header>
+    <h1>YouTube Multiplayer</h1>
+    <div class="controls">
+      <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
+      <button id="addBtn">Add</button>
+      <div class="range-wrap">
+        Zoom: <input id="sizeRange" type="range" min="200" max="600" value="320">
+      </div>
     </div>
+  </header>
 
+  <main>
+    <div class="video-grid" id="videoGrid"></div>
+    <div id="placeholder" class="placeholder">No videos yet — paste a URL above.</div>
+  </main>
+
+<script>
+const addBtn=document.getElementById("addBtn");
+const videoUrl=document.getElementById("videoUrl");
+const grid=document.getElementById("videoGrid");
+const sizeRange=document.getElementById("sizeRange");
+const placeholder=document.getElementById("placeholder");
+
+let videos=[];
+
+function extractVideoId(url){
+  const regExp=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
+  const match=url.match(regExp);
+  return match?match[1]:null;
+}
+
+function saveVideos(){
+  localStorage.setItem("yt_wall_videos",JSON.stringify(videos));
+}
+function loadVideos(){
+  const saved=localStorage.getItem("yt_wall_videos");
+  if(saved) videos=JSON.parse(saved);
+}
+
+function render(){
+  grid.innerHTML="";
+  placeholder.style.display=videos.length===0?"block":"none";
+  videos.forEach((id,i)=>{
+    const c=document.createElement("div");
+    c.className="video-container";
+    c.draggable=true;
+    c.dataset.index=i;
+
+    const iframe=document.createElement("iframe");
+    iframe.src=`https://www.youtube.com/embed/${id}`;
+    iframe.allowFullscreen=true;
+
+    const moveHandle=document.createElement("div");
+    moveHandle.className="action move";
+    moveHandle.innerHTML=`<svg viewBox="0 0 24 24">
+      <path d="M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/>
+    </svg>`;
+
+    const removeBtn=document.createElement("div");
+    removeBtn.className="action remove";
+    removeBtn.innerHTML=`<svg viewBox="0 0 24 24">
+      <path d="M18 6L6 18M6 6l12 12" stroke="#f5f5f5" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+    removeBtn.addEventListener("click",()=>{
+      videos.splice(i,1);
+      saveVideos(); render();
+    });
+
+    // Drag reorder
+    c.addEventListener("dragstart",e=>{
+      e.dataTransfer.setData("text/plain",i);
+      c.style.opacity="0.4";
+    });
+    c.addEventListener("dragend",()=>c.style.opacity="1");
+    c.addEventListener("dragover",e=>e.preventDefault());
+    c.addEventListener("drop",e=>{
+      e.preventDefault();
+      const from=e.dataTransfer.getData("text/plain");
+      const to=i;
+      const moved=videos.splice(from,1)[0];
+      videos.splice(to,0,moved);
+      saveVideos(); render();
+    });
+
+    c.appendChild(moveHandle);
+    c.appendChild(removeBtn);
+    c.appendChild(iframe);
+    grid.appendChild(c);
+  });
+}
+
+addBtn.addEventListener("click",()=>{
+  const id=extractVideoId(videoUrl.value.trim());
+  if(!id){alert("Please enter a valid YouTube URL");return;}
+  videos.push(id);
+  saveVideos(); render();
+  videoUrl.value="";
+});
+videoUrl.addEventListener("keypress",e=>{ if(e.key==="Enter") addBtn.click(); });
+
+sizeRange.addEventListener("input",()=>{
+  const val=sizeRange.value;
+  grid.style.setProperty("--vidWidth",val+"px");
+  localStorage.setItem("yt_wall_size",val);
+});
+
+function initSize(){
+  const stored=localStorage.getItem("yt_wall_size");
+  const val=stored||sizeRange.value;
+  sizeRange.value=val;
+  grid.style.setProperty("--vidWidth",val+"px");
+}
+
+/* Boot */
+loadVideos();
+initSize();
+render();
+</script>
 </body>
 </html>
