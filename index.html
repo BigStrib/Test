@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed YouTube Embed - Referrer Policy Applied</title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            /* Standard 16:9 aspect ratio */
+            padding-bottom: 56.25%; 
+            height: 0;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl max-w-3xl w-full border-t-4 border-teal-500">
+        
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">
+            YouTube Embed Artifact
+        </h1>
+        
+        <p class="text-gray-600 mb-8">
+            This code uses the recommended fixes (<code>youtube-nocookie.com</code> and <code>referrerPolicy</code>), but if the video still shows Error 153, you must apply the **Server-Side Fix** outlined below to your website's hosting environment.
+        </p>
+
+        <!-- Video Container -->
+        <div class="video-container rounded-lg overflow-hidden shadow-xl ring-2 ring-teal-500">
+            <!-- 
+                FIXES APPLIED: 
+                1. Uses the privacy-enhanced domain: www.youtube-nocookie.com
+                2. Explicitly sets the client-side referrer policy: referrerpolicy="strict-origin-when-cross-origin" 
+            -->
+            <iframe 
+                src="https://www.youtube-nocookie.com/embed/dbvVUL_pWuo" 
+                title="🔴LIVE: Chasing First Responders VIEWER+DISCRETION" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin" 
+                allowfullscreen>
+            </iframe>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-teal-700 mt-10 mb-4">
+            Critical Server-Side Fix (For your external website)
+        </h2>
+        
+        <p class="text-gray-700 mb-4">
+            If the video fails, the browser/server is likely overriding your `<iframe>` attribute. You need to configure your web server to send the following **HTTP header** with every request for your HTML page:
+        </p>
+        
+        <pre class="bg-gray-800 text-yellow-300 p-4 rounded-lg text-sm overflow-x-auto select-all">
+Content-Security-Policy: frame-ancestors 'self' *.youtube.com;
+Referrer-Policy: strict-origin-when-cross-origin
+        </pre>
+        
+        <p class="text-sm text-gray-500 mt-4">
+            How you add this depends on your hosting:
+            <ul class="list-disc ml-6 mt-2 space-y-1 text-gray-700">
+                <li><strong class="font-medium">Apache (.htaccess):</strong> Use <code>Header set Referrer-Policy "strict-origin-when-cross-origin"</code></li>
+                <li><strong class="font-medium">Nginx (.conf):</strong> Use <code>add_header Referrer-Policy "strict-origin-when-cross-origin";</code></li>
+                <li><strong class="font-medium">Modern Hosting (e.g., Vercel, Netlify):</strong> Configure it in your deployment settings or configuration files (like <code>vercel.json</code>).</li>
+            </ul>
+        </p>
+        
+    </div>
+
+</body>
+</html>
