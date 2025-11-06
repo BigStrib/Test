@@ -1,103 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>YouTube Multiplayer</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{
   font-family:"Inter","Segoe UI",Roboto,sans-serif;
   background:#000;
   color:#eee;
-  min-height:100vh;
   display:flex;
   flex-direction:column;
+  min-height:100vh;
 }
 
-/* -------- Header -------- */
+/* Header */
 header{
-  background:#111;
-  border-bottom:1px solid #222;
+  background:#111;border-bottom:1px solid #222;
   padding:.8rem 1rem;
-  display:flex;
-  flex-wrap:wrap;
-  gap:.5rem;
-  align-items:center;
-  justify-content:space-between;
+  display:flex;flex-wrap:wrap;gap:.5rem;
+  align-items:center;justify-content:space-between;
 }
-header h1{font-size:1.1rem;font-weight:500;color:#ddd}
-.controls{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+header h1{font-size:1.1rem;font-weight:500;color:#ddd;}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;}
 input[type=text]{
   background:#161616;border:1px solid #333;color:#f0f0f0;
-  border-radius:4px;padding:.45rem .7rem;width:240px
+  border-radius:4px;padding:.45rem .7rem;width:240px;
 }
-input[type=text]:focus{border-color:#666;outline:none}
+input[type=text]:focus{border-color:#666;outline:none;}
 button{
   background:#222;color:#eee;border:none;border-radius:4px;
   padding:.5rem 1rem;cursor:pointer;font-weight:500;
   transition:background-color .2s;
 }
-button:hover{background:#333}
-.range-wrap{display:flex;align-items:center;gap:.4rem;color:#aaa;font-size:.85rem}
-input[type=range]{accent-color:#555;width:120px;cursor:pointer}
+button:hover{background:#333;}
+.range-wrap{display:flex;align-items:center;gap:.4rem;color:#aaa;font-size:.85rem;}
+input[type=range]{accent-color:#555;width:120px;cursor:pointer;}
 
-/* -------- Grid Layout -------- */
-main{flex:1;width:100%}
+/* Grid */
+main{flex:1;width:100%;}
 .video-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,25vw),1fr));
   gap:0;
   width:100%;
-  transition:all .3s ease;
 }
 .video-container{
   position:relative;
   overflow:hidden;
   background:#080808;
   border:1px solid #111;
-  height:calc(50vh - 1px);
-  transition:background-color .2s ease,border-color .2s ease,transform .2s ease;
+  aspect-ratio:16 / 9;
+  transition:transform .2s ease,background-color .2s,border-color .2s;
 }
-.video-container.dragging{opacity:.6;transform:scale(.98)}
-.video-container.drop-target{background:#1a1a1a;border-color:#333}
-
-/* -------- Frame Full-Bleed -------- */
-.video-wrapper{
-  position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;
+.video-container.dragging{
+  opacity:.6;
+  transform:scale(.97);
+  z-index:10;
 }
-.video-wrapper iframe{
+.video-container.drop-before::before,
+.video-container.drop-after::after{
+  content:"";
   position:absolute;
-  top:50%;left:50%;
-  width:112%;height:112%;          /* extra coverage to eliminate bars */
-  transform:translate(-50%,-50%);
-  border:none;
-  transition:opacity .4s ease;
+  top:0;bottom:0;
+  width:4px;
+  background:#666;
+  transition:opacity .2s;
+}
+.video-container.drop-before::before{left:0;}
+.video-container.drop-after::after{right:0;}
+.video-container.drop-target{background:#1a1a1a;}
+
+/* Iframe full fit */
+.video-container iframe{
+  position:absolute;
+  top:0;left:0;width:100%;height:100%;border:none;
 }
 
-/* -------- Buttons -------- */
+/* Action buttons */
 .action{
   position:absolute;top:10px;width:30px;height:30px;
   background:rgba(0,0,0,0.6);
   display:flex;align-items:center;justify-content:center;
-  border-radius:4px;
-  opacity:0;transition:opacity .2s;
-  z-index:2;
+  border-radius:4px;opacity:0;transition:opacity .2s;
+  z-index:5;
 }
-.video-container:hover .action{opacity:1}
-.action.move{left:10px;cursor:grab}
-.action.remove{right:10px;cursor:pointer}
-.action svg{width:18px;height:18px;fill:#f5f5f5}
+.video-container:hover .action{opacity:1;}
+.action.move{left:10px;cursor:grab;}
+.action.remove{right:10px;cursor:pointer;}
+.action svg{width:18px;height:18px;fill:#f5f5f5;}
 
-/* -------- Placeholder -------- */
-.placeholder{text-align:center;padding:2rem;color:#666;font-style:italic}
+/* Placeholder */
+.placeholder{text-align:center;padding:2rem;color:#666;font-style:italic;}
 
-@media(max-width:800px){.video-container{height:33vh}}
 @media(max-width:600px){
-  header{flex-direction:column;align-items:flex-start}
-  .controls{width:100%}
-  input[type=text]{width:100%}
-  .video-container{height:45vh}
+  header{flex-direction:column;align-items:flex-start;}
+  .controls{width:100%;}
+  input[type=text]{width:100%;}
 }
 </style>
 </head>
@@ -107,15 +107,17 @@ main{flex:1;width:100%}
   <div class="controls">
     <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
     <button id="addBtn">Add</button>
-    <div class="range-wrap">
-      Zoom: <input id="sizeRange" type="range" min="20" max="50" value="25">
+    <div class="range-wrap">Zoom:
+      <input id="sizeRange" type="range" min="20" max="50" value="25">
     </div>
   </div>
 </header>
 
 <main>
   <div id="videoGrid" class="video-grid"></div>
-  <div id="placeholder" class="placeholder">No videos yet — paste a URL above.</div>
+  <div id="placeholder" class="placeholder">
+    No videos yet — paste a URL above.
+  </div>
 </main>
 
 <script>
@@ -126,107 +128,138 @@ const sizeRange=document.getElementById("sizeRange");
 const placeholder=document.getElementById("placeholder");
 let videos=[];
 
-/* -------- utilities -------- */
+/* ---- helpers ---- */
 function extractVideoId(url){
-  const r=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
-  const m=url.match(r);
+  const re=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
+  const m=url.match(re);
   return m?m[1]:null;
 }
-function save(){localStorage.setItem("yt_smooth_videos",JSON.stringify(videos));}
-function load(){const s=localStorage.getItem("yt_smooth_videos");if(s)videos=JSON.parse(s);}
+function save(){localStorage.setItem("yt_final_videos",JSON.stringify(videos));}
+function load(){const s=localStorage.getItem("yt_final_videos");if(s)videos=JSON.parse(s);}
 function showPlaceholder(){placeholder.style.display=videos.length?"none":"block";}
+function reindex(){[...grid.children].forEach((el,i)=>el.dataset.index=i);}
 
-/* -------- create a box -------- */
+/* ---- reorder on drag ---- */
+let dragSrc;
+function onDragStart(e){
+  dragSrc=this;
+  this.classList.add("dragging");
+  e.dataTransfer.setData("text/plain","");
+}
+function onDragEnd(){
+  this.classList.remove("dragging");
+  [...grid.children].forEach(el=>el.classList.remove("drop-before","drop-after","drop-target"));
+}
+function onDragOver(e){
+  e.preventDefault();
+  const target=this;
+  if(target===dragSrc)return;
+  const rect=target.getBoundingClientRect();
+  const midpoint=(rect.left+rect.right)/2;
+  target.classList.add("drop-target");
+  if(e.clientX<midpoint){
+    target.classList.add("drop-before");
+    target.classList.remove("drop-after");
+  }else{
+    target.classList.add("drop-after");
+    target.classList.remove("drop-before");
+  }
+}
+function onDragLeave(){
+  this.classList.remove("drop-before","drop-after","drop-target");
+}
+function onDrop(e){
+  e.preventDefault();
+  const target=this;
+  if(target===dragSrc)return;
+  const all=[...grid.children];
+  const srcIndex=all.indexOf(dragSrc);
+  const tgtIndex=all.indexOf(target);
+  const before=target.classList.contains("drop-before");
+  target.classList.remove("drop-before","drop-after","drop-target");
+
+  if(before){
+    grid.insertBefore(dragSrc,target);
+    videos.splice(tgtIndex,0,videos.splice(srcIndex,1)[0]);
+  }else{
+    grid.insertBefore(dragSrc,target.nextSibling);
+    videos.splice(tgtIndex+1,0,videos.splice(srcIndex,1)[0]);
+  }
+  save();reindex();
+}
+
+/* ---- build video ---- */
 function makeBox(id,index){
-  const box=document.createElement("div");box.className="video-container";box.dataset.index=index;
-  const wrap=document.createElement("div");wrap.className="video-wrapper";
+  const box=document.createElement("div");
+  box.className="video-container";
+  box.dataset.index=index;
+  box.draggable=true;
+
   const iframe=document.createElement("iframe");
-  iframe.src=`https://www.youtube.com/embed/${id}`;iframe.allowFullscreen=true;
-  wrap.appendChild(iframe);
+  iframe.src=`https://www.youtube.com/embed/${id}`;
+  iframe.allowFullscreen=true;
 
   const mv=document.createElement("div");
   mv.className="action move";
-  mv.innerHTML=`<svg viewBox='0 0 24 24'><path d='M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z'/></svg>`;
+  mv.innerHTML=`<svg viewBox='0 0 24 24'>
+    <path d='M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z'/></svg>`;
 
   const rm=document.createElement("div");
   rm.className="action remove";
-  rm.innerHTML=`<svg viewBox='0 0 24 24'><path d='M18 6L6 18M6 6l12 12' stroke='#f5f5f5' stroke-width='2' stroke-linecap='round'/></svg>`;
-  rm.addEventListener("click",()=>{videos.splice(index,1);save();box.remove();reindex();showPlaceholder();});
-
-  box.appendChild(mv);box.appendChild(rm);box.appendChild(wrap);
-
-  /* drag events without reloading iframes */
-  box.addEventListener("dragstart",e=>{
-    box.classList.add("dragging");
-    e.dataTransfer.effectAllowed="move";
-    e.dataTransfer.setData("text/plain",index);
-  });
-  box.addEventListener("dragend",()=>box.classList.remove("dragging"));
-  box.addEventListener("dragover",e=>{
-    e.preventDefault();
-    if(!box.classList.contains("dragging"))box.classList.add("drop-target");
-  });
-  box.addEventListener("dragleave",()=>box.classList.remove("drop-target"));
-  box.addEventListener("drop",e=>{
-    e.preventDefault();
-    document.querySelectorAll(".drop-target").forEach(el=>el.classList.remove("drop-target"));
-    const from=parseInt(e.dataTransfer.getData("text/plain"));
-    const to=index;
-    if(from===to)return;
-    const moved=videos.splice(from,1)[0];
-    videos.splice(to,0,moved);
-    save();
-    reorderDom();reindex();
+  rm.innerHTML=`<svg viewBox='0 0 24 24'>
+    <path d='M18 6L6 18M6 6l12 12' stroke='#f5f5f5' stroke-width='2' stroke-linecap='round'/></svg>`;
+  rm.addEventListener("click",()=>{
+    const idx=[...grid.children].indexOf(box);
+    videos.splice(idx,1);
+    save();box.remove();reindex();showPlaceholder();
   });
 
+  box.appendChild(mv);
+  box.appendChild(rm);
+  box.appendChild(iframe);
+
+  box.addEventListener("dragstart",onDragStart);
+  box.addEventListener("dragend",onDragEnd);
+  box.addEventListener("dragover",onDragOver);
+  box.addEventListener("dragleave",onDragLeave);
+  box.addEventListener("drop",onDrop);
   return box;
 }
 
-/* keep index markers synced */
-function reindex(){
-  [...grid.children].forEach((el,i)=>el.dataset.index=i);
-}
-
-/* reorder DOM elements without reloading iframes */
-function reorderDom(){
-  videos.forEach((id,i)=>{
-    const box=[...grid.children].find(b=>b.querySelector("iframe").src.includes(id));
-    if(box)grid.appendChild(box);
-  });
-}
-
-/* initial render only once */
+/* ---- render ---- */
 function renderAll(){
   grid.innerHTML="";
   videos.forEach((id,i)=>grid.appendChild(makeBox(id,i)));
   showPlaceholder();
 }
 
-/* -------- add -------- */
+/* ---- add ---- */
 addBtn.addEventListener("click",()=>{
   const id=extractVideoId(videoUrl.value.trim());
   if(!id){alert("Please enter a valid YouTube URL");return;}
-  videos.push(id);save();
-  grid.appendChild(makeBox(id,videos.length-1));showPlaceholder();
+  videos.push(id);
+  save();
+  grid.appendChild(makeBox(id,videos.length-1));
+  showPlaceholder();
   videoUrl.value="";
 });
 videoUrl.addEventListener("keypress",e=>{if(e.key==="Enter")addBtn.click();});
 
-/* -------- zoom -------- */
+/* ---- zoom ---- */
 sizeRange.addEventListener("input",()=>{
-  const v=sizeRange.value;
-  grid.style.setProperty("--vidWidth",v+"vw");
-  localStorage.setItem("yt_smooth_size",v);
+  const val=sizeRange.value;
+  grid.style.setProperty("--vidWidth",val+"vw");
+  localStorage.setItem("yt_wall_zoom",val);
 });
-function initSize(){
-  const s=localStorage.getItem("yt_smooth_size");
+function initZoom(){
+  const s=localStorage.getItem("yt_wall_zoom");
   const v=s||sizeRange.value;
   sizeRange.value=v;
   grid.style.setProperty("--vidWidth",v+"vw");
 }
 
-/* -------- init -------- */
-load();initSize();renderAll();
+/* ---- init ---- */
+load();initZoom();renderAll();
 </script>
 </body>
 </html>
