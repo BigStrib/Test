@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>YouTube Multiplayer</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -17,37 +17,33 @@ body{
 
 /* Header */
 header{
-  background:#111;
-  border-bottom:1px solid #222;
+  background:#111; border-bottom:1px solid #222;
   padding:0.8rem 1rem;
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  gap:0.5rem;
+  display:flex;flex-wrap:wrap;gap:0.5rem;
+  align-items:center;justify-content:space-between;
 }
-header h1{font-size:1.1rem;font-weight:500;color:#e0e0e0}
+header h1{font-size:1.1rem;font-weight:500;color:#ddd}
 .controls{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center}
 input[type=text]{
-  background:#161616;border:1px solid #333;color:#f5f5f5;
-  border-radius:4px;padding:0.45rem 0.7rem;width:240px
+  background:#161616;border:1px solid #333;color:#f0f0f0;
+  border-radius:4px;padding:0.45rem 0.7rem;width:240px;
 }
 input[type=text]:focus{border-color:#666;outline:none}
 button{
   background:#222;color:#eee;border:none;border-radius:4px;
-  padding:0.5rem 1rem;cursor:pointer;font-weight:500
+  padding:0.5rem 1rem;cursor:pointer;font-weight:500;
 }
 button:hover{background:#333}
 .range-wrap{display:flex;align-items:center;gap:0.4rem;color:#aaa;font-size:0.85rem}
-input[type=range]{accent-color:#555;cursor:pointer;width:120px}
+input[type=range]{accent-color:#555;width:120px;cursor:pointer}
 
 /* Grid */
-main{flex:1;width:100%}
+main{flex:1;width:100%;}
 .video-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,300px),1fr));
-  gap:0;
+  grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,25vw),1fr));
   width:100%;
+  gap:0;
 }
 .video-container{
   position:relative;
@@ -57,16 +53,15 @@ main{flex:1;width:100%}
 }
 iframe{
   width:100%;
-  height:auto;
-  display:block;
-  aspect-ratio:16/9;
-  border:none;
+  height:calc(50vh - 1px);/* two rows fill viewport */
+  border:none;display:block;
 }
 
 /* Buttons */
 .action{
   position:absolute;top:10px;width:30px;height:30px;
-  background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.6);
+  display:flex;align-items:center;justify-content:center;
   border-radius:4px;opacity:0;transition:opacity .2s;
 }
 .video-container:hover .action{opacity:1}
@@ -77,34 +72,38 @@ iframe{
 /* Placeholder */
 .placeholder{text-align:center;padding:2rem;color:#666;font-style:italic}
 
+@media(max-width:800px){
+  iframe{height:33vh;}
+}
 @media(max-width:600px){
   header{flex-direction:column;align-items:flex-start}
   .controls{width:100%}
   input[type=text]{width:100%}
+  iframe{height:45vh;}
 }
 </style>
 </head>
 <body>
-  <header>
-    <h1>YouTube Multiplayer</h1>
-    <div class="controls">
-      <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
-      <button id="addBtn">Add</button>
-      <div class="range-wrap">Zoom:
-        <input id="sizeRange" type="range" min="220" max="600" value="320">
-      </div>
+<header>
+  <h1>YouTube Multiplayer</h1>
+  <div class="controls">
+    <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
+    <button id="addBtn">Add</button>
+    <div class="range-wrap">
+      Zoom: <input id="sizeRange" type="range" min="20" max="50" value="25">
     </div>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <div id="videoGrid" class="video-grid"></div>
-    <div id="placeholder" class="placeholder">No videos yet — paste a URL above.</div>
-  </main>
+<main>
+  <div id="videoGrid" class="video-grid"></div>
+  <div id="placeholder" class="placeholder">No videos yet — paste a URL above.</div>
+</main>
 
 <script>
+const grid=document.getElementById("videoGrid");
 const addBtn=document.getElementById("addBtn");
 const videoUrl=document.getElementById("videoUrl");
-const grid=document.getElementById("videoGrid");
 const sizeRange=document.getElementById("sizeRange");
 const placeholder=document.getElementById("placeholder");
 
@@ -116,98 +115,112 @@ function extractVideoId(url){
   return m?m[1]:null;
 }
 
-function createVideoContainer(id,i){
-  const c=document.createElement("div");
-  c.className="video-container";
-  c.draggable=true;
-  c.dataset.index=i;
+/* ---------- create individual video box ---------- */
+function makeVideo(id,i){
+  const box=document.createElement("div");
+  box.className="video-container";
+  box.draggable=true;
+  box.dataset.index=i;
 
   const iframe=document.createElement("iframe");
   iframe.src=`https://www.youtube.com/embed/${id}`;
   iframe.allowFullscreen=true;
 
-  const move=document.createElement("div");
-  move.className="action move";
-  move.innerHTML=`<svg viewBox="0 0 24 24">
+  const mv=document.createElement("div");
+  mv.className="action move";
+  mv.innerHTML=`<svg viewBox="0 0 24 24">
     <path d="M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z"/></svg>`;
 
-  const x=document.createElement("div");
-  x.className="action remove";
-  x.innerHTML=`<svg viewBox="0 0 24 24">
-    <path d="M18 6L6 18M6 6l12 12" stroke="#f5f5f5" stroke-width="2" stroke-linecap="round"/>
-  </svg>`;
-  x.addEventListener("click",()=>{
+  const rm=document.createElement("div");
+  rm.className="action remove";
+  rm.innerHTML=`<svg viewBox="0 0 24 24">
+    <path d="M18 6L6 18M6 6l12 12" stroke="#f5f5f5"
+          stroke-width="2" stroke-linecap="round"/></svg>`;
+  rm.addEventListener("click",()=>{
     videos.splice(i,1);
-    save(); render();
+    save();
+    box.remove();                         // remove just this one
+    rebuildIndexes();                     // refresh dataset indexes
+    togglePlaceholder();
   });
 
-  // simple drag order change
-  c.addEventListener("dragstart",e=>{
+  box.addEventListener("dragstart",e=>{
     e.dataTransfer.setData("text/plain",i);
-    c.style.opacity="0.4";
+    box.style.opacity="0.4";
   });
-  c.addEventListener("dragend",()=>c.style.opacity="1");
-  c.addEventListener("dragover",e=>e.preventDefault());
-  c.addEventListener("drop",e=>{
+  box.addEventListener("dragend",()=>box.style.opacity="1");
+  box.addEventListener("dragover",e=>e.preventDefault());
+  box.addEventListener("drop",e=>{
     e.preventDefault();
-    const from=e.dataTransfer.getData("text/plain");
+    const from=parseInt(e.dataTransfer.getData("text/plain"));
     const to=i;
     const moved=videos.splice(from,1)[0];
     videos.splice(to,0,moved);
-    save(); render();
+    save();
+    fullRender();                         // reorder needs full rebuild
   });
 
-  c.appendChild(move);
-  c.appendChild(x);
-  c.appendChild(iframe);
-  return c;
+  box.appendChild(mv);
+  box.appendChild(rm);
+  box.appendChild(iframe);
+  return box;
 }
 
-function save(){localStorage.setItem("yt_stable_videos",JSON.stringify(videos));}
+/* ---------- helpers ---------- */
+function togglePlaceholder(){
+  placeholder.style.display=videos.length?"none":"block";
+}
+function rebuildIndexes(){
+  [...grid.children].forEach((box,idx)=>box.dataset.index=idx);
+}
+
+function save(){localStorage.setItem("yt_noFlash_videos",JSON.stringify(videos));}
 function load(){
-  const s=localStorage.getItem("yt_stable_videos");
+  const s=localStorage.getItem("yt_noFlash_videos");
   if(s) videos=JSON.parse(s);
 }
 
-function render(){
-  if(videos.length===0){placeholder.style.display="block";grid.innerHTML="";return;}
-  placeholder.style.display="none";
-
-  // ensure existing DOM and new list stay synced
+/* full repaint (only needed for reorder, not on add) */
+function fullRender(){
   grid.innerHTML="";
-  videos.forEach((id,i)=>{
-    const vid=createVideoContainer(id,i);
-    grid.appendChild(vid);
-  });
+  videos.forEach((id,i)=>grid.appendChild(makeVideo(id,i)));
+  togglePlaceholder();
 }
 
+/* ---------- add video ---------- */
 addBtn.addEventListener("click",()=>{
   const id=extractVideoId(videoUrl.value.trim());
   if(!id){alert("Please enter a valid YouTube URL");return;}
-  videos.push(id); save();
-  // Append only the new one
-  const vid=createVideoContainer(id,videos.length-1);
-  grid.appendChild(vid);
-  placeholder.style.display="none";
+  videos.push(id);
+  save();
+
+  const index=videos.length-1;
+  const newVid=makeVideo(id,index);
+  grid.appendChild(newVid);               // append only new
+  togglePlaceholder();
   videoUrl.value="";
 });
-
 videoUrl.addEventListener("keypress",e=>{if(e.key==="Enter")addBtn.click();});
 
+/* ---------- zoom ---------- */
 sizeRange.addEventListener("input",()=>{
   const val=sizeRange.value;
-  grid.style.setProperty("--vidWidth",val+"px");
-  localStorage.setItem("yt_stable_size",val);
+  grid.style.setProperty("--vidWidth",val+"vw");
+  localStorage.setItem("yt_noFlash_size",val);
 });
 
 function initSize(){
-  const s=localStorage.getItem("yt_stable_size");
+  const s=localStorage.getItem("yt_noFlash_size");
   const v=s||sizeRange.value;
   sizeRange.value=v;
-  grid.style.setProperty("--vidWidth",v+"px");
+  grid.style.setProperty("--vidWidth",v+"vw");
 }
 
-load();initSize();render();
+/* ---------- init ---------- */
+load();
+initSize();
+fullRender();
 </script>
 </body>
 </html>
+
