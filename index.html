@@ -2,194 +2,223 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Multi‑YouTube Player – Freeform Resizing</title>
+<title>Multi‑YouTube Board – Persistent</title>
 <style>
   :root {
-    --bg: #0d0d0d;
-    --surface: #1a1a1a;
-    --border: #333;
-    --accent: #ffcc00;
-    --text: #eee;
+    --bg:#0a0a0a;
+    --border:#222;
+    --text:#eee;
+    --button:#222;
+    --hover:#333;
   }
-
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    overflow: hidden;
+  html,body{
+    margin:0;padding:0;
+    width:100%;height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI",Arial,sans-serif;
+    overflow:hidden;
   }
-
-  #controls {
-    padding: 10px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+  *{box-sizing:border-box;}
+  #playerArea{
+    position:fixed;inset:0;
+    overflow:hidden;
   }
-
-  #urlInput {
-    width: 60%;
-    padding: 8px;
-    background: #111;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
+  .video-box{
+    position:absolute;
+    width:400px;height:225px;
+    background:black;
+    border:1px solid var(--border);
+    border-radius:4px;
+    overflow:hidden;
+    box-shadow:0 0 10px rgba(0,0,0,.6);
+    transition:box-shadow .3s,transform .25s ease;
   }
-
-  #addBtn {
-    padding: 8px 12px;
-    margin-left: 10px;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
+  .video-box:hover{box-shadow:0 0 18px rgba(255,255,255,.25);}
+  .video-box button{
+    display:none;
+    position:absolute;
+    border:none;border-radius:4px;
+    background:rgba(0,0,0,.6);
+    color:#ccc;
+    cursor:pointer;font-size:16px;z-index:10;
   }
-
-  #playerArea {
-    position: relative;
-    height: calc(100vh - 50px);
-    overflow: hidden;
+  .video-box:hover button{
+    display:flex;align-items:center;justify-content:center;
   }
-
-  .video-box {
-    position: absolute;
-    width: 400px;
-    height: 225px;
-    background: black;
-    border: 0;
-    border-radius: 0;
-    overflow: hidden;
-    box-shadow: 0 0 6px rgba(0,0,0,0.6);
-    transition: box-shadow 0.2s;
+  .video-box button:hover{background:rgba(255,255,255,.25);}
+  .move-handle{top:6px;left:6px;width:28px;height:24px;font-size:18px;cursor:grab;}
+  .close-btn{top:6px;right:6px;width:28px;height:24px;}
+  .resize-btn{right:6px;bottom:6px;width:26px;height:26px;cursor:se-resize;}
+  iframe{
+    position:absolute;top:50%;left:50%;
+    width:100%;height:100%;
+    transform:translate(-50%,-50%);
+    border:0;object-fit:fill;
   }
-  .video-box:hover { box-shadow: 0 0 12px rgba(255,255,255,0.25); }
-
-  .video-box button {
-    display: none;
-    position: absolute;
-    border: none;
-    border-radius: 4px;
-    color: var(--text);
-    background: rgba(0,0,0,0.6);
-    cursor: pointer;
-    font-size: 16px;
-    z-index: 10;
+  #addBtn{
+    position:fixed;
+    bottom:15px;left:15px;
+    width:36px;height:36px;
+    line-height:32px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--button);
+    color:var(--text);
+    font-size:22px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 0 6px rgba(0,0,0,.5);
+    transition:background .25s,box-shadow .25s,transform .15s;
+    z-index:999;
   }
-
-  .video-box:hover button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .move-handle { top: 6px; left: 6px; width: 28px; height: 24px; cursor: move; }
-  .close-btn { top: 6px; right: 6px; width: 28px; height: 24px; }
-  .resize-btn { right: 6px; bottom: 6px; width: 26px; height: 26px; cursor: se-resize; }
-
-  iframe {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    transform: translate(-50%, -50%);
-    object-fit: fill;  /* stretch to fit box shape */
-    border: 0;
+  #addBtn:hover{
+    background:var(--hover);
+    box-shadow:0 0 10px rgba(255,204,0,.4);
+    transform:scale(1.1);
   }
 </style>
 </head>
 <body>
-  <div id="controls">
-    <input id="urlInput" placeholder="Paste YouTube URL…" />
-    <button id="addBtn">Add Video</button>
-  </div>
   <div id="playerArea"></div>
+  <div id="addBtn">＋</div>
 
-  <!-- Interact.js -->
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
   <script>
     const area = document.getElementById('playerArea');
-    const input = document.getElementById('urlInput');
     const addBtn = document.getElementById('addBtn');
 
-    function getVideoId(url) {
-      const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-      return m ? m[1] : null;
+    /* ---------- Data Persistence ---------- */
+    const STORAGE_KEY = "yt-layout-v1";
+
+    function saveLayout() {
+      const boxes = [...document.querySelectorAll('.video-box')].map(b => ({
+        id: b.dataset.videoId,
+        x: parseFloat(b.dataset.x)||0,
+        y: parseFloat(b.dataset.y)||0,
+        w: b.offsetWidth,
+        h: b.offsetHeight
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(boxes));
+    }
+
+    function loadLayout() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+        data.forEach(v => restoreVideo(v));
+      } catch(e){ console.warn("Failed to load layout", e); }
+    }
+
+    /* ---------- YouTube ID Extractor ---------- */
+    function extractYouTubeId(url){
+      url = url.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
+        if (u.searchParams.get("v")) return u.searchParams.get("v");
+        const parts = u.pathname.split("/");
+        const last = parts.pop();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(last)) return last;
+      } catch(e){}
+      return null;
     }
 
     addBtn.onclick = () => {
-      const id = getVideoId(input.value.trim());
-      if (!id) { alert('Invalid YouTube URL'); return; }
-      makeBox(id);
-      input.value = '';
+      const link = prompt("Paste YouTube URL or 11-character ID:");
+      if (!link) return;
+      const id = extractYouTubeId(link);
+      if (!id) { alert("Invalid YouTube URL/ID"); return; }
+      createVideo(id);
+      saveLayout();
     };
 
-    function makeBox(videoId) {
+    /* ---------- Video Box Creation ---------- */
+    function createVideo(id, x=Math.random()*100, y=Math.random()*80, w=400, h=225){
       const box = document.createElement('div');
-      box.className = 'video-box';
-      box.style.left = Math.random()*200 + 'px';
-      box.style.top  = Math.random()*100 + 'px';
+      box.className='video-box';
+      box.dataset.videoId = id;
+      box.style.width=w+"px";
+      box.style.height=h+"px";
+      box.dataset.x = x; box.dataset.y = y;
+      box.style.transform=`translate(${x}px,${y}px)`;
 
-      const move = document.createElement('button');
-      move.className = 'move-handle drag-handle';
-      move.textContent = '☰';
+      const move=document.createElement('button');
+      move.className='move-handle';move.textContent='☰';
+      const close=document.createElement('button');
+      close.className='close-btn';close.textContent='×';
+      close.onclick=()=>{ box.remove(); saveLayout(); };
+      const resize=document.createElement('button');
+      resize.className='resize-btn resize-handle';resize.textContent='⇱';
 
-      const close = document.createElement('button');
-      close.className = 'close-btn';
-      close.textContent = '×';
-      close.onclick = () => box.remove();
+      const iframe=document.createElement('iframe');
+      iframe.src=`https://www.youtube.com/embed/${id}?enablejsapi=1`;
+      iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      iframe.allowFullscreen=true;
 
-      const resize = document.createElement('button');
-      resize.className = 'resize-btn resize-handle';
-      resize.textContent = '⇱';
-
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;";
-      iframe.allowFullscreen = true;
-
-      box.append(move, close, resize, iframe);
+      box.append(move,close,resize,iframe);
       area.appendChild(box);
-      setInteractions(box);
+      makeInteractive(box,move,resize);
     }
 
-    function setInteractions(box) {
-      // Dragging
-      interact(box).draggable({
-        allowFrom: '.drag-handle',
-        modifiers: [interact.modifiers.restrictRect({ restriction:'#playerArea', endOnly:false })],
-        listeners: {
-          move(e) {
-            const t=e.target;
-            const x=(parseFloat(t.dataset.x)||0)+e.dx;
-            const y=(parseFloat(t.dataset.y)||0)+e.dy;
-            t.style.transform=`translate(${x}px,${y}px)`;
-            t.dataset.x=x; t.dataset.y=y;
-          }
-        }
-      });
+    function restoreVideo(v){
+      createVideo(v.id,v.x,v.y,v.w,v.h);
+    }
 
-      // Fully free resizing
+    /* ---------- Drag & Resize ---------- */
+    function makeInteractive(box,handle){
+      let dragging=false;
+      handle.onmousedown=e=>{ e.preventDefault(); dragging=true; box.style.transition='none'; };
+      window.onmouseup=()=>{ if(dragging){ dragging=false; saveLayout(); } box.style.transition='transform 0.25s ease'; };
+
+      window.onmousemove=e=>{
+        if(!dragging) return;
+        const dx=e.movementX, dy=e.movementY;
+        let x=(parseFloat(box.dataset.x)||0)+dx;
+        let y=(parseFloat(box.dataset.y)||0)+dy;
+        const rectWidth = box.offsetWidth, rectHeight = box.offsetHeight;
+        const maxX = window.innerWidth - rectWidth;
+        const maxY = window.innerHeight - rectHeight;
+        if(x<0)x=0; if(y<0)y=0;
+        if(x>maxX)x=maxX; if(y>maxY)y=maxY;
+        box.dataset.x = x; box.dataset.y = y;
+        box.style.transform=`translate(${x}px,${y}px)`;
+      };
+
       interact(box).resizable({
-        allowFrom: '.resize-handle',
-        edges:{left:true,right:true,bottom:true,top:true},
-        modifiers:[interact.modifiers.restrictEdges({outer:'parent',endOnly:false})],
+        allowFrom:'.resize-handle',
+        edges:{left:true,right:true,top:true,bottom:true},
         listeners:{
-          move(e){
-            const t=e.target;
-            let x=parseFloat(t.dataset.x)||0;
-            let y=parseFloat(t.dataset.y)||0;
-            t.style.width=e.rect.width+'px';
-            t.style.height=e.rect.height+'px';
-            x+=e.deltaRect.left;
-            y+=e.deltaRect.top;
-            t.style.transform=`translate(${x}px,${y}px)`;
-            t.dataset.x=x; t.dataset.y=y;
-          }
+          move(event){
+            let x=parseFloat(box.dataset.x)||0;
+            let y=parseFloat(box.dataset.y)||0;
+            box.style.width=event.rect.width+'px';
+            box.style.height=event.rect.height+'px';
+            x+=event.deltaRect.left;
+            y+=event.deltaRect.top;
+            const maxX=window.innerWidth-event.rect.width;
+            const maxY=window.innerHeight-event.rect.height;
+            if(x<0)x=0;if(y<0)y=0;
+            if(x>maxX)x=maxX;if(y>maxY)y=maxY;
+            box.dataset.x=x; box.dataset.y=y;
+            box.style.transform=`translate(${x}px,${y}px)`;
+          },
+          end(){ saveLayout(); }
         }
       });
+
+      window.addEventListener('resize',()=>{
+        const w=box.offsetWidth,h=box.offsetHeight;
+        let x=parseFloat(box.dataset.x)||0, y=parseFloat(box.dataset.y)||0;
+        const maxX=window.innerWidth-w, maxY=window.innerHeight-h;
+        if(x>maxX)x=maxX;if(y>maxY)y=maxY;
+        box.dataset.x=x; box.dataset.y=y;
+        box.style.transform=`translate(${x}px,${y}px)`;
+      });
     }
+
+    /* ---------- Start ---------- */
+    loadLayout();
   </script>
 </body>
 </html>
