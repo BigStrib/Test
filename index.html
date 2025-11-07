@@ -1,267 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>YouTube Multiplayer</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-  font-family:"Inter","Segoe UI",Roboto,sans-serif;
-  background:#000;
-  color:#eee;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
+  <meta charset="UTF-8" />
+  <title>Multi YouTube Player – Bounded & Dark</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #1a1a1a;
+      --border: #333;
+      --accent: #ffcc00;
+      --text: #eee;
+    }
 
-/* Header */
-header{
-  background:#111;border-bottom:1px solid #222;
-  padding:.8rem 1rem;
-  display:flex;flex-wrap:wrap;gap:.5rem;
-  align-items:center;justify-content:space-between;
-}
-header h1{font-size:1.1rem;font-weight:500;color:#ddd;}
-.controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;}
-input[type=text]{
-  background:#161616;border:1px solid #333;color:#f0f0f0;
-  border-radius:4px;padding:.45rem .7rem;width:240px;
-}
-input[type=text]:focus{border-color:#666;outline:none;}
-button{
-  background:#222;color:#eee;border:none;border-radius:4px;
-  padding:.5rem 1rem;cursor:pointer;font-weight:500;
-  transition:background-color .2s;
-}
-button:hover{background:#333;}
-.range-wrap{display:flex;align-items:center;gap:.4rem;color:#aaa;font-size:.85rem;}
-input[type=range]{accent-color:#555;width:120px;cursor:pointer;}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
 
-/* Grid */
-main{flex:1;width:100%;}
-.video-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(var(--vidWidth,25vw),1fr));
-  gap:0;
-  width:100%;
-}
-.video-container{
-  position:relative;
-  overflow:hidden;
-  background:#080808;
-  border:1px solid #111;
-  aspect-ratio:16 / 9;
-  transition:transform .2s ease,background-color .2s,border-color .2s;
-}
-.video-container.dragging{
-  opacity:.6;
-  transform:scale(.97);
-  z-index:10;
-}
-.video-container.drop-before::before,
-.video-container.drop-after::after{
-  content:"";
-  position:absolute;
-  top:0;bottom:0;
-  width:4px;
-  background:#666;
-  transition:opacity .2s;
-}
-.video-container.drop-before::before{left:0;}
-.video-container.drop-after::after{right:0;}
-.video-container.drop-target{background:#1a1a1a;}
+    #controls {
+      padding: 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
 
-/* Iframe full fit */
-.video-container iframe{
-  position:absolute;
-  top:0;left:0;width:100%;height:100%;border:none;
-}
+    #urlInput {
+      width: 60%;
+      padding: 8px;
+      background: #111;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 4px;
+    }
 
-/* Action buttons */
-.action{
-  position:absolute;top:10px;width:30px;height:30px;
-  background:rgba(0,0,0,0.6);
-  display:flex;align-items:center;justify-content:center;
-  border-radius:4px;opacity:0;transition:opacity .2s;
-  z-index:5;
-}
-.video-container:hover .action{opacity:1;}
-.action.move{left:10px;cursor:grab;}
-.action.remove{right:10px;cursor:pointer;}
-.action svg{width:18px;height:18px;fill:#f5f5f5;}
+    #addBtn {
+      padding: 8px 12px;
+      margin-left: 10px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-/* Placeholder */
-.placeholder{text-align:center;padding:2rem;color:#666;font-style:italic;}
+    #playerArea {
+      position: relative;
+      height: calc(100vh - 50px);
+      overflow: hidden;
+    }
 
-@media(max-width:600px){
-  header{flex-direction:column;align-items:flex-start;}
-  .controls{width:100%;}
-  input[type=text]{width:100%;}
-}
-</style>
+    .video-box {
+      position: absolute;
+      width: 400px;
+      height: 225px; /* 16:9 */
+      background: black;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6);
+      transition: box-shadow 0.25s;
+    }
+
+    .video-box:hover {
+      box-shadow: 0 0 12px rgba(255,255,255,0.25);
+    }
+
+    .video-box button {
+      display: none;
+      position: absolute;
+      border: none;
+      border-radius: 4px;
+      color: var(--text);
+      background: rgba(0,0,0,0.6);
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 10;
+    }
+
+    .video-box:hover button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .move-handle {
+      top: 6px;
+      left: 6px;
+      width: 28px;
+      height: 24px;
+      cursor: move;
+    }
+
+    .close-btn {
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 24px;
+    }
+
+    .resize-btn {
+      right: 6px;
+      bottom: 6px;
+      width: 26px;
+      height: 26px;
+      cursor: se-resize;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-<header>
-  <h1>YouTube Multiplayer</h1>
-  <div class="controls">
-    <input id="videoUrl" type="text" placeholder="Paste YouTube URL">
-    <button id="addBtn">Add</button>
-    <div class="range-wrap">Zoom:
-      <input id="sizeRange" type="range" min="20" max="50" value="25">
-    </div>
+  <div id="controls">
+    <input id="urlInput" placeholder="Paste YouTube URL..." />
+    <button id="addBtn">Add Video</button>
   </div>
-</header>
+  <div id="playerArea"></div>
 
-<main>
-  <div id="videoGrid" class="video-grid"></div>
-  <div id="placeholder" class="placeholder">
-    No videos yet — paste a URL above.
-  </div>
-</main>
+  <!-- Interact.js -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <script>
+    const playerArea = document.getElementById('playerArea');
+    const input = document.getElementById('urlInput');
+    const addBtn = document.getElementById('addBtn');
 
-<script>
-const grid=document.getElementById("videoGrid");
-const addBtn=document.getElementById("addBtn");
-const videoUrl=document.getElementById("videoUrl");
-const sizeRange=document.getElementById("sizeRange");
-const placeholder=document.getElementById("placeholder");
-let videos=[];
+    function getVideoId(url) {
+      const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+      return match ? match[1] : null;
+    }
 
-/* ---- helpers ---- */
-function extractVideoId(url){
-  const re=/(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
-  const m=url.match(re);
-  return m?m[1]:null;
-}
-function save(){localStorage.setItem("yt_final_videos",JSON.stringify(videos));}
-function load(){const s=localStorage.getItem("yt_final_videos");if(s)videos=JSON.parse(s);}
-function showPlaceholder(){placeholder.style.display=videos.length?"none":"block";}
-function reindex(){[...grid.children].forEach((el,i)=>el.dataset.index=i);}
+    addBtn.addEventListener('click', () => {
+      const id = getVideoId(input.value.trim());
+      if (!id) { alert('Invalid YouTube URL'); return; }
+      createVideoBox(id);
+      input.value = '';
+    });
 
-/* ---- reorder on drag ---- */
-let dragSrc;
-function onDragStart(e){
-  dragSrc=this;
-  this.classList.add("dragging");
-  e.dataTransfer.setData("text/plain","");
-}
-function onDragEnd(){
-  this.classList.remove("dragging");
-  [...grid.children].forEach(el=>el.classList.remove("drop-before","drop-after","drop-target"));
-}
-function onDragOver(e){
-  e.preventDefault();
-  const target=this;
-  if(target===dragSrc)return;
-  const rect=target.getBoundingClientRect();
-  const midpoint=(rect.left+rect.right)/2;
-  target.classList.add("drop-target");
-  if(e.clientX<midpoint){
-    target.classList.add("drop-before");
-    target.classList.remove("drop-after");
-  }else{
-    target.classList.add("drop-after");
-    target.classList.remove("drop-before");
-  }
-}
-function onDragLeave(){
-  this.classList.remove("drop-before","drop-after","drop-target");
-}
-function onDrop(e){
-  e.preventDefault();
-  const target=this;
-  if(target===dragSrc)return;
-  const all=[...grid.children];
-  const srcIndex=all.indexOf(dragSrc);
-  const tgtIndex=all.indexOf(target);
-  const before=target.classList.contains("drop-before");
-  target.classList.remove("drop-before","drop-after","drop-target");
+    function createVideoBox(videoId) {
+      const box = document.createElement('div');
+      box.className = 'video-box';
+      box.style.left = Math.random() * 120 + 'px';
+      box.style.top  = Math.random() * 100 + 'px';
 
-  if(before){
-    grid.insertBefore(dragSrc,target);
-    videos.splice(tgtIndex,0,videos.splice(srcIndex,1)[0]);
-  }else{
-    grid.insertBefore(dragSrc,target.nextSibling);
-    videos.splice(tgtIndex+1,0,videos.splice(srcIndex,1)[0]);
-  }
-  save();reindex();
-}
+      const moveHandle = document.createElement('button');
+      moveHandle.className = 'move-handle drag-handle';
+      moveHandle.textContent = '☰';
 
-/* ---- build video ---- */
-function makeBox(id,index){
-  const box=document.createElement("div");
-  box.className="video-container";
-  box.dataset.index=index;
-  box.draggable=true;
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'close-btn';
+      closeBtn.textContent = '×';
+      closeBtn.onclick = () => box.remove();
 
-  const iframe=document.createElement("iframe");
-  iframe.src=`https://www.youtube.com/embed/${id}`;
-  iframe.allowFullscreen=true;
+      const resizeBtn = document.createElement('button');
+      resizeBtn.className = 'resize-btn resize-handle';
+      resizeBtn.textContent = '⇱';
 
-  const mv=document.createElement("div");
-  mv.className="action move";
-  mv.innerHTML=`<svg viewBox='0 0 24 24'>
-    <path d='M7 10h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4z'/></svg>`;
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+      iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;";
+      iframe.allowFullscreen = true;
 
-  const rm=document.createElement("div");
-  rm.className="action remove";
-  rm.innerHTML=`<svg viewBox='0 0 24 24'>
-    <path d='M18 6L6 18M6 6l12 12' stroke='#f5f5f5' stroke-width='2' stroke-linecap='round'/></svg>`;
-  rm.addEventListener("click",()=>{
-    const idx=[...grid.children].indexOf(box);
-    videos.splice(idx,1);
-    save();box.remove();reindex();showPlaceholder();
-  });
+      box.append(moveHandle, closeBtn, resizeBtn, iframe);
+      playerArea.appendChild(box);
+    }
 
-  box.appendChild(mv);
-  box.appendChild(rm);
-  box.appendChild(iframe);
+    // Drag with boundary restriction
+    interact('.video-box').draggable({
+      allowFrom: '.drag-handle',
+      modifiers: [
+        interact.modifiers.restrictRect({
+          restriction: '#playerArea',
+          endOnly: true
+        })
+      ],
+      listeners: {
+        move(event) {
+          const t = event.target;
+          const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+          const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+          t.style.transform = `translate(${x}px, ${y}px)`;
+          t.setAttribute('data-x', x);
+          t.setAttribute('data-y', y);
+        }
+      }
+    });
 
-  box.addEventListener("dragstart",onDragStart);
-  box.addEventListener("dragend",onDragEnd);
-  box.addEventListener("dragover",onDragOver);
-  box.addEventListener("dragleave",onDragLeave);
-  box.addEventListener("drop",onDrop);
-  return box;
-}
+    // Resize with boundary restriction
+    interact('.video-box').resizable({
+      allowFrom: '.resize-handle',
+      edges: { right: true, bottom: true },
+      modifiers: [
+        interact.modifiers.aspectRatio({
+          ratio: 16/9,
+          enforce: 'reposition'
+        }),
+        interact.modifiers.restrictEdges({
+          outer: 'parent'
+        })
+      ],
+      listeners: {
+        move(event) {
+          let x = parseFloat(event.target.getAttribute('data-x')) || 0;
+          let y = parseFloat(event.target.getAttribute('data-y')) || 0;
 
-/* ---- render ---- */
-function renderAll(){
-  grid.innerHTML="";
-  videos.forEach((id,i)=>grid.appendChild(makeBox(id,i)));
-  showPlaceholder();
-}
+          event.target.style.width  = event.rect.width + 'px';
+          event.target.style.height = event.rect.height + 'px';
 
-/* ---- add ---- */
-addBtn.addEventListener("click",()=>{
-  const id=extractVideoId(videoUrl.value.trim());
-  if(!id){alert("Please enter a valid YouTube URL");return;}
-  videos.push(id);
-  save();
-  grid.appendChild(makeBox(id,videos.length-1));
-  showPlaceholder();
-  videoUrl.value="";
-});
-videoUrl.addEventListener("keypress",e=>{if(e.key==="Enter")addBtn.click();});
+          x += event.deltaRect.left;
+          y += event.deltaRect.top;
 
-/* ---- zoom ---- */
-sizeRange.addEventListener("input",()=>{
-  const val=sizeRange.value;
-  grid.style.setProperty("--vidWidth",val+"vw");
-  localStorage.setItem("yt_wall_zoom",val);
-});
-function initZoom(){
-  const s=localStorage.getItem("yt_wall_zoom");
-  const v=s||sizeRange.value;
-  sizeRange.value=v;
-  grid.style.setProperty("--vidWidth",v+"vw");
-}
-
-/* ---- init ---- */
-load();initZoom();renderAll();
-</script>
+          event.target.style.transform = `translate(${x}px, ${y}px)`;
+          event.target.setAttribute('data-x', x);
+          event.target.setAttribute('data-y', y);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
-
-
