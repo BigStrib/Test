@@ -1,125 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Multi YouTube Player – Bounded & Dark</title>
-  <style>
-    :root {
-      --bg: #0d0d0d;
-      --surface: #1a1a1a;
-      --border: #333;
-      --accent: #ffcc00;
-      --text: #eee;
-    }
+<meta charset="UTF-8" />
+<title>Multi‑YouTube Player – Freeform Resizing</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #333;
+    --accent: #ffcc00;
+    --text: #eee;
+  }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow: hidden;
-    }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
 
-    #controls {
-      padding: 10px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
+  #controls {
+    padding: 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
 
-    #urlInput {
-      width: 60%;
-      padding: 8px;
-      background: #111;
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 4px;
-    }
+  #urlInput {
+    width: 60%;
+    padding: 8px;
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+  }
 
-    #addBtn {
-      padding: 8px 12px;
-      margin-left: 10px;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+  #addBtn {
+    padding: 8px 12px;
+    margin-left: 10px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 
-    #playerArea {
-      position: relative;
-      height: calc(100vh - 50px);
-      overflow: hidden;
-    }
+  #playerArea {
+    position: relative;
+    height: calc(100vh - 50px);
+    overflow: hidden;
+  }
 
-    .video-box {
-      position: absolute;
-      width: 400px;
-      height: 225px; /* 16:9 */
-      background: black;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 0 6px rgba(0,0,0,0.6);
-      transition: box-shadow 0.25s;
-    }
+  .video-box {
+    position: absolute;
+    width: 400px;
+    height: 225px;
+    background: black;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 0 6px rgba(0,0,0,0.6);
+    transition: box-shadow 0.2s;
+  }
+  .video-box:hover { box-shadow: 0 0 12px rgba(255,255,255,0.25); }
 
-    .video-box:hover {
-      box-shadow: 0 0 12px rgba(255,255,255,0.25);
-    }
+  .video-box button {
+    display: none;
+    position: absolute;
+    border: none;
+    border-radius: 4px;
+    color: var(--text);
+    background: rgba(0,0,0,0.6);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 10;
+  }
 
-    .video-box button {
-      display: none;
-      position: absolute;
-      border: none;
-      border-radius: 4px;
-      color: var(--text);
-      background: rgba(0,0,0,0.6);
-      cursor: pointer;
-      font-size: 16px;
-      z-index: 10;
-    }
+  .video-box:hover button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .video-box:hover button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  .move-handle { top: 6px; left: 6px; width: 28px; height: 24px; cursor: move; }
+  .close-btn { top: 6px; right: 6px; width: 28px; height: 24px; }
+  .resize-btn { right: 6px; bottom: 6px; width: 26px; height: 26px; cursor: se-resize; }
 
-    .move-handle {
-      top: 6px;
-      left: 6px;
-      width: 28px;
-      height: 24px;
-      cursor: move;
-    }
-
-    .close-btn {
-      top: 6px;
-      right: 6px;
-      width: 28px;
-      height: 24px;
-    }
-
-    .resize-btn {
-      right: 6px;
-      bottom: 6px;
-      width: 26px;
-      height: 26px;
-      cursor: se-resize;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-  </style>
+  iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: fill;  /* stretch to fit box shape */
+    border: 0;
+  }
+</style>
 </head>
 <body>
   <div id="controls">
-    <input id="urlInput" placeholder="Paste YouTube URL..." />
+    <input id="urlInput" placeholder="Paste YouTube URL…" />
     <button id="addBtn">Add Video</button>
   </div>
   <div id="playerArea"></div>
@@ -127,102 +109,87 @@
   <!-- Interact.js -->
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
   <script>
-    const playerArea = document.getElementById('playerArea');
+    const area = document.getElementById('playerArea');
     const input = document.getElementById('urlInput');
     const addBtn = document.getElementById('addBtn');
 
     function getVideoId(url) {
-      const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-      return match ? match[1] : null;
+      const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+      return m ? m[1] : null;
     }
 
-    addBtn.addEventListener('click', () => {
+    addBtn.onclick = () => {
       const id = getVideoId(input.value.trim());
       if (!id) { alert('Invalid YouTube URL'); return; }
-      createVideoBox(id);
+      makeBox(id);
       input.value = '';
-    });
+    };
 
-    function createVideoBox(videoId) {
+    function makeBox(videoId) {
       const box = document.createElement('div');
       box.className = 'video-box';
-      box.style.left = Math.random() * 120 + 'px';
-      box.style.top  = Math.random() * 100 + 'px';
+      box.style.left = Math.random()*200 + 'px';
+      box.style.top  = Math.random()*100 + 'px';
 
-      const moveHandle = document.createElement('button');
-      moveHandle.className = 'move-handle drag-handle';
-      moveHandle.textContent = '☰';
+      const move = document.createElement('button');
+      move.className = 'move-handle drag-handle';
+      move.textContent = '☰';
 
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'close-btn';
-      closeBtn.textContent = '×';
-      closeBtn.onclick = () => box.remove();
+      const close = document.createElement('button');
+      close.className = 'close-btn';
+      close.textContent = '×';
+      close.onclick = () => box.remove();
 
-      const resizeBtn = document.createElement('button');
-      resizeBtn.className = 'resize-btn resize-handle';
-      resizeBtn.textContent = '⇱';
+      const resize = document.createElement('button');
+      resize.className = 'resize-btn resize-handle';
+      resize.textContent = '⇱';
 
       const iframe = document.createElement('iframe');
       iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-      iframe.allow =
-        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;";
       iframe.allowFullscreen = true;
 
-      box.append(moveHandle, closeBtn, resizeBtn, iframe);
-      playerArea.appendChild(box);
+      box.append(move, close, resize, iframe);
+      area.appendChild(box);
+      setInteractions(box);
     }
 
-    // Drag with boundary restriction
-    interact('.video-box').draggable({
-      allowFrom: '.drag-handle',
-      modifiers: [
-        interact.modifiers.restrictRect({
-          restriction: '#playerArea',
-          endOnly: true
-        })
-      ],
-      listeners: {
-        move(event) {
-          const t = event.target;
-          const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-          const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-          t.style.transform = `translate(${x}px, ${y}px)`;
-          t.setAttribute('data-x', x);
-          t.setAttribute('data-y', y);
+    function setInteractions(box) {
+      // Dragging
+      interact(box).draggable({
+        allowFrom: '.drag-handle',
+        modifiers: [interact.modifiers.restrictRect({ restriction:'#playerArea', endOnly:false })],
+        listeners: {
+          move(e) {
+            const t=e.target;
+            const x=(parseFloat(t.dataset.x)||0)+e.dx;
+            const y=(parseFloat(t.dataset.y)||0)+e.dy;
+            t.style.transform=`translate(${x}px,${y}px)`;
+            t.dataset.x=x; t.dataset.y=y;
+          }
         }
-      }
-    });
+      });
 
-    // Resize with boundary restriction
-    interact('.video-box').resizable({
-      allowFrom: '.resize-handle',
-      edges: { right: true, bottom: true },
-      modifiers: [
-        interact.modifiers.aspectRatio({
-          ratio: 16/9,
-          enforce: 'reposition'
-        }),
-        interact.modifiers.restrictEdges({
-          outer: 'parent'
-        })
-      ],
-      listeners: {
-        move(event) {
-          let x = parseFloat(event.target.getAttribute('data-x')) || 0;
-          let y = parseFloat(event.target.getAttribute('data-y')) || 0;
-
-          event.target.style.width  = event.rect.width + 'px';
-          event.target.style.height = event.rect.height + 'px';
-
-          x += event.deltaRect.left;
-          y += event.deltaRect.top;
-
-          event.target.style.transform = `translate(${x}px, ${y}px)`;
-          event.target.setAttribute('data-x', x);
-          event.target.setAttribute('data-y', y);
+      // Fully free resizing
+      interact(box).resizable({
+        allowFrom: '.resize-handle',
+        edges:{left:true,right:true,bottom:true,top:true},
+        modifiers:[interact.modifiers.restrictEdges({outer:'parent',endOnly:false})],
+        listeners:{
+          move(e){
+            const t=e.target;
+            let x=parseFloat(t.dataset.x)||0;
+            let y=parseFloat(t.dataset.y)||0;
+            t.style.width=e.rect.width+'px';
+            t.style.height=e.rect.height+'px';
+            x+=e.deltaRect.left;
+            y+=e.deltaRect.top;
+            t.style.transform=`translate(${x}px,${y}px)`;
+            t.dataset.x=x; t.dataset.y=y;
+          }
         }
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>
