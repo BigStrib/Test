@@ -91,30 +91,12 @@
             height: 100%;
             border: none;
             background: #000;
-            pointer-events: none; /* Prevent iframe from blocking drag events */
-            transition: filter 0.2s;
         }
-        .video-wrapper:hover .video-content-inner iframe {
-            pointer-events: auto; /* Allow interaction with controls on hover */
-            filter: brightness(1.05);
-        }
-        /* Drag layer */
-        .video-drag-layer {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%;
-            cursor: grab;
-            z-index: 5;
-            background: transparent;
-        }
-        .video-wrapper.dragging .video-drag-layer {
-            cursor: grabbing;
-        }
-        /* Controls (close, resize) */
+        /* Controls (move, close, resize) */
         .video-controls {
             pointer-events: none;
         }
-        .close-btn, .resize-icon {
+        .move-btn, .close-btn, .resize-icon {
             position: absolute;
             opacity: 0;
             transition: opacity 0.2s, background 0.2s;
@@ -125,6 +107,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .move-btn {
+            top: 6px;
+            left: 6px;
+            width: 22px;
+            height: 22px;
+            cursor: grab;
+            border-radius: 4px;
+        }
+        .move-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .move-btn:active {
+            cursor: grabbing;
         }
         .close-btn {
             top: 6px;
@@ -157,12 +154,13 @@
         .resize-icon:hover {
             background: #2a2a2a;
         }
+        .video-wrapper:hover .move-btn,
         .video-wrapper:hover .close-btn,
         .video-wrapper:hover .resize-icon {
             opacity: 1;
         }
         /* Prevent text selection on icons */
-        .close-btn, .resize-icon {
+        .move-btn, .close-btn, .resize-icon {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -226,10 +224,17 @@
                             allowfullscreen
                             data-videoid="${videoId}">
                         </iframe>
-                        <div class="video-drag-layer"></div>
                     </div>
                 </div>
                 <div class="video-controls">
+                    <div class="move-btn" title="Move">
+                        <svg viewBox="0 0 14 14" fill="none">
+                            <circle cx="4" cy="4" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="10" cy="4" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="4" cy="10" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="10" cy="10" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                        </svg>
+                    </div>
                     <div class="close-btn" title="Close">
                         <svg viewBox="0 0 12 12" fill="none">
                             <rect x="1" y="5.2" width="10" height="1.6" rx="0.8" transform="rotate(45 6 6)" fill="#fff" fill-opacity="0.8"/>
@@ -256,18 +261,18 @@
             // Only allow left mouse button
             if (e.button !== 0) return;
 
+            // Move (only on move-btn)
+            if (e.target.classList.contains('move-btn') || e.target.closest('.move-btn')) {
+                action = 'drag';
+                currentElement = e.target.closest('.video-wrapper');
+                startDrag(e);
+                return;
+            }
             // Resize
             if (e.target.classList.contains('resize-icon') || e.target.closest('.resize-icon')) {
                 action = 'resize';
                 currentElement = e.target.closest('.video-wrapper');
                 startResize(e);
-                return;
-            }
-            // Drag (on drag layer only, not on controls)
-            if (e.target.classList.contains('video-drag-layer')) {
-                action = 'drag';
-                currentElement = e.target.closest('.video-wrapper');
-                startDrag(e);
                 return;
             }
         });
@@ -354,7 +359,6 @@
         });
     </script>
 </body>
-</html>
 </html>
 
 
