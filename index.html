@@ -7,38 +7,32 @@
     <style>
         :root {
             --grid-size: 20px;
-            --grid-color: #2a2a2a; /* Darker grid for the dark theme */
             --aspect-ratio: 56.25%; /* 9 / 16 = 0.5625 */
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            background-color: #121212; /* Black page background */
-            color: #e0e0e0; /* Light text color */
+            background-color: #121212;
+            color: #e0e0e0;
         }
-
         header {
             background-color: #1f1f1f;
-            padding: 5px 20px; /* Slimmer header */
+            padding: 5px 20px;
             border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
             gap: 15px;
-            height: 40px; /* Fixed slim height */
+            height: 40px;
         }
-        
         header h2 {
             font-size: 1em;
             margin: 0;
             white-space: nowrap;
         }
-
         #add-video-form {
             display: flex;
             gap: 10px;
         }
-
         #add-video-form input {
             padding: 6px 10px;
             border: 1px solid #444;
@@ -47,7 +41,6 @@
             border-radius: 4px;
             width: 300px;
         }
-
         #add-video-form button {
             padding: 6px 15px;
             border: none;
@@ -60,82 +53,37 @@
         #add-video-form button:hover {
             background-color: #a32722;
         }
-
         #grid-container {
             position: relative;
-            height: calc(100vh - 51px); /* Adjusted for slim header */
+            height: calc(100vh - 51px);
             overflow: hidden;
-            background-image:
-                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-            background-size: var(--grid-size) var(--grid-size);
         }
-
         .video-wrapper {
             position: absolute;
-            width: 480px; /* Height will be set by aspect ratio */
-            background-color: #282828;
+            width: 480px;
+            background-color: #000;
             border: 1px solid #444;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            border-radius: 6px;
-            overflow: hidden;
             min-width: calc(var(--grid-size) * 10); /* 200px */
+            user-select: none;
+            /* No border-radius for sharp corners */
+            transition: box-shadow 0.2s;
         }
-        
         .video-wrapper.dragging {
             z-index: 1000;
-            opacity: 0.8;
+            opacity: 0.85;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
         }
-
-        .video-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1f1f1f;
-            padding: 3px 10px;
-            cursor: move;
-            font-size: 12px;
-            color: #ccc;
-            user-select: none;
-            border-bottom: 1px solid #444;
-            flex-shrink: 0;
-        }
-        
-        .video-title {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 10px;
-        }
-
-        .close-btn {
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 1;
-            padding: 0 5px;
-            font-weight: bold;
-            color: #888;
-        }
-        .close-btn:hover {
-            color: #fff;
-        }
-
         .video-content {
             width: 100%;
-            height: auto; /* Allow aspect ratio to control height */
+            height: auto;
             background-color: #000;
         }
-
-        /* --- The 16:9 Aspect Ratio Magic --- */
         .video-content-inner {
             position: relative;
             width: 100%;
-            padding-top: var(--aspect-ratio); /* 56.25% for 16:9 */
+            padding-top: var(--aspect-ratio);
         }
-
         .video-content-inner iframe {
             position: absolute;
             top: 0;
@@ -143,21 +91,94 @@
             width: 100%;
             height: 100%;
             border: none;
+            background: #000;
+            pointer-events: none; /* Prevent iframe from blocking drag events */
         }
-
-        .resizer {
+        /* Drag layer */
+        .video-drag-layer {
             position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            cursor: grab;
+            z-index: 5;
+            background: transparent;
+        }
+        .video-wrapper.dragging .video-drag-layer {
+            cursor: grabbing;
+        }
+        /* Controls (move, close, resize) */
+        .video-controls {
+            pointer-events: none;
+        }
+        .move-icon, .close-btn, .resize-icon {
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.2s, background 0.2s;
+            pointer-events: auto;
+            z-index: 20;
+            background: rgba(32,32,32,0.55);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .move-icon {
+            top: 6px;
+            left: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+        }
+        .move-icon svg {
             width: 14px;
             height: 14px;
-            z-index: 10;
         }
-
-        /* Only using the bottom-right resizer for intuitive aspect-ratio resizing */
-        .resizer.se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+        .close-btn {
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .close-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+        .close-btn:hover {
+            background: #c4302b;
+            color: #fff;
+        }
+        .resize-icon {
+            right: 6px;
+            bottom: 6px;
+            width: 22px;
+            height: 22px;
+            cursor: nwse-resize;
+            border-radius: 4px;
+        }
+        .resize-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+        .resize-icon:hover {
+            background: #2a2a2a;
+        }
+        .video-wrapper:hover .move-icon,
+        .video-wrapper:hover .close-btn,
+        .video-wrapper:hover .resize-icon {
+            opacity: 1;
+        }
+        /* Prevent text selection on icons */
+        .move-icon, .close-btn, .resize-icon {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
-
     <header>
         <h2>YouTube Grid</h2>
         <form id="add-video-form">
@@ -165,9 +186,7 @@
             <button type="submit">Add Video</button>
         </form>
     </header>
-
     <main id="grid-container"></main>
-
     <script>
         const gridContainer = document.getElementById('grid-container');
         const addVideoForm = document.getElementById('add-video-form');
@@ -188,22 +207,20 @@
             return ID;
         }
 
-        function addVideo(videoId, title = 'YouTube Video') {
+        function addVideo(videoId) {
             videoCount++;
             const wrapper = document.createElement('div');
             wrapper.className = 'video-wrapper';
-            
             const initialWidth = 480;
             const initialHeight = initialWidth * ASPECT_RATIO;
-            wrapper.style.left = `${(videoCount * 2 * GRID_SIZE) % (gridContainer.clientWidth - initialWidth)}px`;
-            wrapper.style.top = `${(videoCount * 2 * GRID_SIZE) % (gridContainer.clientHeight - initialHeight)}px`;
+            const availableWidth = gridContainer.clientWidth - initialWidth;
+            const availableHeight = gridContainer.clientHeight - initialHeight;
+            const startLeft = Math.max(0, (videoCount * 2 * GRID_SIZE) % availableWidth);
+            const startTop = Math.max(0, (videoCount * 2 * GRID_SIZE) % availableHeight);
+            wrapper.style.left = `${startLeft}px`;
+            wrapper.style.top = `${startTop}px`;
             wrapper.style.width = `${initialWidth}px`;
-
             wrapper.innerHTML = `
-                <div class="video-header">
-                    <span class="video-title">${title}</span>
-                    <span class="close-btn">&times;</span>
-                </div>
                 <div class="video-content">
                     <div class="video-content-inner">
                         <iframe
@@ -211,138 +228,140 @@
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen>
                         </iframe>
+                        <div class="video-drag-layer"></div>
                     </div>
                 </div>
-                <div class="resizer se" data-direction="se"></div>
+                <div class="video-controls">
+                    <div class="move-icon" title="Move">
+                        <svg viewBox="0 0 14 14" fill="none">
+                            <circle cx="4" cy="4" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="10" cy="4" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="4" cy="10" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                            <circle cx="10" cy="10" r="1.5" fill="#fff" fill-opacity="0.7"/>
+                        </svg>
+                    </div>
+                    <div class="close-btn" title="Close">
+                        <svg viewBox="0 0 12 12" fill="none">
+                            <rect x="1" y="5.2" width="10" height="1.6" rx="0.8" transform="rotate(45 6 6)" fill="#fff" fill-opacity="0.8"/>
+                            <rect x="1" y="5.2" width="10" height="1.6" rx="0.8" transform="rotate(-45 6 6)" fill="#fff" fill-opacity="0.8"/>
+                        </svg>
+                    </div>
+                    <div class="resize-icon" title="Resize">
+                        <svg viewBox="0 0 14 14" fill="none">
+                            <polyline points="5,13 13,13 13,5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            <line x1="13" y1="13" x2="7" y2="7" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
             `;
             gridContainer.appendChild(wrapper);
         }
 
-        // --- Event Handling ---
         let currentElement = null;
         let action = null;
         let startX, startY, startLeft, startTop, startWidth;
 
+        // Drag and resize logic
         gridContainer.addEventListener('mousedown', (e) => {
-            // Close Button Logic
-            if (e.target.classList.contains('close-btn')) {
-                e.target.closest('.video-wrapper').remove();
-                return; // Stop further processing
-            }
+            // Only allow left mouse button
+            if (e.button !== 0) return;
 
-            if (e.target.classList.contains('video-header')) {
-                action = 'drag';
-                currentElement = e.target.closest('.video-wrapper');
-                startDrag(e);
-            } else if (e.target.classList.contains('resizer')) {
+            // Resize
+            if (e.target.classList.contains('resize-icon') || e.target.closest('.resize-icon')) {
                 action = 'resize';
                 currentElement = e.target.closest('.video-wrapper');
                 startResize(e);
+                return;
+            }
+            // Drag (on drag layer only, not on controls)
+            if (e.target.classList.contains('video-drag-layer')) {
+                action = 'drag';
+                currentElement = e.target.closest('.video-wrapper');
+                startDrag(e);
+                return;
+            }
+        });
+
+        // Remove video on X click
+        gridContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('close-btn') || e.target.closest('.close-btn')) {
+                e.target.closest('.video-wrapper').remove();
             }
         });
 
         function startDrag(e) {
             e.preventDefault();
             currentElement.classList.add('dragging');
-            
             startX = e.clientX;
             startY = e.clientY;
             startLeft = currentElement.offsetLeft;
             startTop = currentElement.offsetTop;
-
             document.addEventListener('mousemove', doDrag);
             document.addEventListener('mouseup', stopAction);
         }
-
         function doDrag(e) {
             if (!currentElement) return;
-
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-
             let newLeft = startLeft + dx;
             let newTop = startTop + dy;
-            
-            // Snap to grid
             newLeft = Math.round(newLeft / GRID_SIZE) * GRID_SIZE;
             newTop = Math.round(newTop / GRID_SIZE) * GRID_SIZE;
-
-            // Constrain to viewport
             const maxLeft = gridContainer.clientWidth - currentElement.offsetWidth;
             const maxTop = gridContainer.clientHeight - currentElement.offsetHeight;
             newLeft = Math.max(0, Math.min(newLeft, maxLeft));
             newTop = Math.max(0, Math.min(newTop, maxTop));
-
             currentElement.style.left = `${newLeft}px`;
             currentElement.style.top = `${newTop}px`;
         }
-
         function startResize(e) {
             e.preventDefault();
             currentElement.classList.add('dragging');
-            
             startX = e.clientX;
             startWidth = currentElement.offsetWidth;
             startLeft = currentElement.offsetLeft;
             startTop = currentElement.offsetTop;
-
             document.addEventListener('mousemove', doResize);
             document.addEventListener('mouseup', stopAction);
         }
-
         function doResize(e) {
             if (!currentElement) return;
             const dx = e.clientX - startX;
             let newWidth = startWidth + dx;
-
-            // Snap width to grid
             newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
-
-            // Constrain to min-width and viewport
             const minWidth = parseInt(getComputedStyle(currentElement).minWidth);
             const maxWidth = gridContainer.clientWidth - currentElement.offsetLeft;
             newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-            
             const newHeight = newWidth * ASPECT_RATIO;
             if (currentElement.offsetTop + newHeight > gridContainer.clientHeight) {
-                // If resizing would push it off the bottom, calculate max possible width
                 newWidth = (gridContainer.clientHeight - currentElement.offsetTop) / ASPECT_RATIO;
-                newWidth = Math.floor(newWidth / GRID_SIZE) * GRID_SIZE; // Snap down
+                newWidth = Math.floor(newWidth / GRID_SIZE) * GRID_SIZE;
             }
-            
             currentElement.style.width = `${newWidth}px`;
         }
-
         function stopAction() {
             if (currentElement) {
                 currentElement.classList.remove('dragging');
-                // Disable iframe pointer events while dragging for performance
-                currentElement.querySelector('iframe').style.pointerEvents = 'auto';
             }
             document.removeEventListener('mousemove', doDrag);
             document.removeEventListener('mousemove', doResize);
             document.removeEventListener('mouseup', stopAction);
-
             currentElement = null;
             action = null;
         }
-
         addVideoForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const urlOrId = videoUrlInput.value.trim();
             if (urlOrId) {
                 const videoId = getYouTubeId(urlOrId);
                 if (videoId) {
-                    addVideo(videoId, `Video: ${videoId}`);
+                    addVideo(videoId);
                     videoUrlInput.value = '';
                 } else {
                     alert('Could not find a valid YouTube Video ID.');
                 }
             }
         });
-        
-        // Add a starting video
-        addVideo('jfKfPfyJRdk', 'lofi hip hop radio - beats to relax/study to');
     </script>
 </body>
 </html>
