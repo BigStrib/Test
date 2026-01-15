@@ -5,7 +5,7 @@ const timerEl = document.getElementById('timer'), startBtn = document.getElement
 
 // Game State
 let gameState = 'MENU', timeLeft = 60, score = 0, opponentScore = 0;
-let preGameCount = 3; // The 3, 2, 1 countdown
+let preGameCount = 3; // The 3, 2, 1 countdown!
 let isOffline = true, isHost = false, peer, conn, coins = [], obstacles = [];
 
 // Player Objects
@@ -186,3 +186,4 @@ startBtn.onclick = () => startCountdown();
 
 
 window.onload = () => { canvas.width = 800; canvas.height = 600; };
+
