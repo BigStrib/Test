@@ -2,164 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Characters: Coin Collector</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <i class="fas fa-flag-checkered"></i>
-                <span>EVENT MANAGER</span>
-            </div>
-            <nav class="header-nav">
-                <button class="nav-btn" id="menuToggle">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>NEW EVENT</span>
-                </button>
-            </nav>
+    <div id="game-container">
+        <div id="ui-layer">
+            <div class="stat-box"><i class="fas fa-clock"></i> <span id="timer">60</span>s</div>
+            <div class="stat-box">P1: <span id="score">0</span> | P2: <span id="opp-score-ui">0</span></div>
         </div>
-    </header>
 
-    <!-- Dropdown Panel -->
-    <div class="dropdown-panel" id="dropdownPanel">
-        <div class="dropdown-inner">
-            <div class="panel-header">
-                <h2><i class="fas fa-calendar-plus"></i> Add New Event</h2>
-                <button class="close-btn" id="closePanel">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div id="menu-overlay" class="overlay">
+            <h1>Characters</h1>
+            <div id="setup-view">
+                <p>Enter a 4-character Room ID:</p>
+                <input type="text" id="custom-id-input" maxlength="4" placeholder="1234">
+                <div class="button-group">
+                    <button id="host-btn" class="btn">Host Room</button>
+                    <button id="join-btn" class="btn secondary">Join Room</button>
+                </div>
+                <button id="start-bot" class="btn offline-btn">Play Offline (Bot)</button>
             </div>
-            
-            <form class="event-form" id="eventForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventDate">DATE</label>
-                        <input type="text" id="eventDate" placeholder="tomorrow, next saturday, Dec 25..." autocomplete="off">
-                        <span class="helper-text">Natural language or standard date format</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="eventTitle">EVENT NAME</label>
-                        <input type="text" id="eventTitle" placeholder="Enter event name..." autocomplete="off">
-                    </div>
-                    
-                    <div class="form-group price-group">
-                        <label for="eventPrice">TICKET PRICE</label>
-                        <div class="price-input-wrapper">
-                            <span class="currency">$</span>
-                            <input type="number" id="eventPrice" placeholder="0.00" step="0.01" min="0">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="submit-btn" id="submitBtn">
-                        <i class="fas fa-check"></i>
-                        SUBMIT EVENT
-                    </button>
-                    <div class="secondary-actions">
-                        <button type="button" class="action-btn import-btn" id="importBtn">
-                            <i class="fas fa-upload"></i>
-                            IMPORT
-                        </button>
-                        <button type="button" class="action-btn export-btn" id="exportBtn">
-                            <i class="fas fa-download"></i>
-                            EXPORT
-                        </button>
-                    </div>
-                </div>
-                <input type="file" id="fileInput" accept=".json" hidden>
-            </form>
-        </div>
-    </div>
 
-    <!-- Backdrop -->
-    <div class="backdrop" id="backdrop"></div>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Stats Section -->
-        <section class="stats-section">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-calendar"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="totalEvents">0</span>
-                        <span class="stat-label">Total Events</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon upcoming"><i class="fas fa-clock"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="upcomingEvents">0</span>
-                        <span class="stat-label">Upcoming</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon attended"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="attendedEvents">0</span>
-                        <span class="stat-label">Attended</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon money"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-info">
-                        <span class="stat-number" id="totalSpent">$0</span>
-                        <span class="stat-label">Total Spent</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Schedule Section -->
-        <section class="schedule-section">
-            <div class="section-header">
-                <h2><i class="fas fa-list"></i> EVENT SCHEDULE</h2>
-                <div class="filter-tabs">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="upcoming">Upcoming</button>
-                    <button class="filter-btn" data-filter="attended">Attended</button>
-                    <button class="filter-btn" data-filter="cancelled">Cancelled</button>
-                </div>
-            </div>
-            
-            <div class="events-list" id="eventsList">
-                <!-- Events rendered here -->
-            </div>
-        </section>
-    </main>
-
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-icon" id="modalIcon">
-                <i class="fas fa-question"></i>
-            </div>
-            <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
-            <p class="modal-message" id="modalMessage">Are you sure?</p>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" id="modalCancel">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button class="modal-btn confirm-btn" id="modalConfirm">
-                    <i class="fas fa-check"></i> Confirm
-                </button>
+            <div id="lobby-view" class="hidden">
+                <p id="lobby-status">Waiting for connection...</p>
+                <button id="trigger-start" class="btn success hidden">START GAME</button>
             </div>
         </div>
-    </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success</span>
-    </div>
+        <canvas id="gameCanvas"></canvas>
 
+        <div id="mobile-controls">
+            <div class="control-row"><button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button></div>
+            <div class="control-row">
+                <button class="ctrl-btn" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+                <button class="ctrl-btn" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+                <button class="ctrl-btn" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div id="game-over" class="overlay hidden">
+            <h2 id="winner-text">Match Ended!</h2>
+            <p id="final-score-display"></p>
+            <button onclick="location.reload()" class="btn">Play Again</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
