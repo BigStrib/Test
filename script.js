@@ -12,7 +12,7 @@ let isOffline = true, isHost = false, peer, conn, coins = [], obstacles = [];
 const p1 = { x: 100, y: 300, size: 30, color: '#3498db', speed: 5 };
 const p2 = { x: 600, y: 300, size: 30, color: '#e67e22', speed: 4 };
 
-// --- NETWORKING ---
+// --- NETWORKING! ---
 function initPeer(id, mode) {
     peer = new Peer('char-' + id);
     peer.on('open', () => {
@@ -183,5 +183,6 @@ document.getElementById('host-btn').onclick = () => initPeer(document.getElement
 document.getElementById('join-btn').onclick = () => initPeer(document.getElementById('custom-id-input').value, 'join');
 document.getElementById('start-bot').onclick = () => startCountdown();
 startBtn.onclick = () => startCountdown();
+
 
 window.onload = () => { canvas.width = 800; canvas.height = 600; };
