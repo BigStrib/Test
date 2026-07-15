@@ -1,4 +1,4 @@
-const CACHE = 'notevault-v1';
+const CACHE = 'cgspeedway-v1';
 const ASSETS = [
     '/',
     '/index.html',
