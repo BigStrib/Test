@@ -1,9 +1,9 @@
 {
-    "name": "Cgspeedway",
-    "short_name": "Cgspeedway",
+    "name": "CGspeedway",
+    "short_name": "CGspeedway",
     "description": "Speedway Price List",
-    "start_url": "/cgspeedway/",
-    "scope": "/cgspeedway//",
+    "start_url": "/CGspeedway/",
+    "scope": "/CGspeedway//",
     "display": "standalone",
     "orientation": "any",
     "background_color": "#000000",
