@@ -2,54 +2,379 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Characters: Coin Collector</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Manager Pro</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	
+	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NEW_APP_NAME">
+
+<link rel="apple-touch-icon" href="./images/icon.svg">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+
+<link rel="manifest" href="manifest.json">
+	
+	
 </head>
 <body>
-    <div id="game-container">
-        <div id="ui-layer">
-            <div class="stat-box"><i class="fas fa-clock"></i> <span id="timer">60</span>s</div>
-            <div class="stat-box">P1: <span id="score">0</span> | P2: <span id="opp-score-ui">0</span></div>
-        </div>
 
-        <div id="menu-overlay" class="overlay">
-            <h1>Characters</h1>
-            <div id="setup-view">
-                <p>Enter a 4-character Room ID:</p>
-                <input type="text" id="custom-id-input" maxlength="4" placeholder="1234">
-                <div class="button-group">
-                    <button id="host-btn" class="btn">Host Room</button>
-                    <button id="join-btn" class="btn secondary">Join Room</button>
+    <!-- ==================== LOGIN ==================== -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg">
+            <div class="login-card">
+                <div class="login-brand">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h1>EventTracker<span class="brand-dot">.</span></h1>
+                    <p class="brand-sub">Management Dashboard</p>
                 </div>
-                <button id="start-bot" class="btn offline-btn">Play Offline (Bot)</button>
+                <form id="login-form" autocomplete="off">
+                    <div class="input-group">
+                        <div class="input-icon"><i class="fa-solid fa-envelope"></i></div>
+                        <input type="email" id="login-email" placeholder="Email address" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <div class="input-icon"><i class="fa-solid fa-lock"></i></div>
+                        <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                        <button type="button" id="toggle-password" class="input-action" tabindex="-1">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="login-error" class="login-error"></div>
+                    <button type="submit" id="login-btn" class="btn-login">
+                        <span class="btn-login-text">Sign In</span>
+                        <span class="btn-login-loader" style="display:none;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        </span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="login-footer">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Authorized personnel only
+                </div>
             </div>
-
-            <div id="lobby-view" class="hidden">
-                <p id="lobby-status">Waiting for connection...</p>
-                <button id="trigger-start" class="btn success hidden">START GAME</button>
-            </div>
-        </div>
-
-        <canvas id="gameCanvas"></canvas>
-
-        <div id="mobile-controls">
-            <div class="control-row"><button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button></div>
-            <div class="control-row">
-                <button class="ctrl-btn" id="btn-left"><i class="fas fa-chevron-left"></i></button>
-                <button class="ctrl-btn" id="btn-down"><i class="fas fa-chevron-down"></i></button>
-                <button class="ctrl-btn" id="btn-right"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </div>
-
-        <div id="game-over" class="overlay hidden">
-            <h2 id="winner-text">Match Ended!</h2>
-            <p id="final-score-display"></p>
-            <button onclick="location.reload()" class="btn">Play Again</button>
         </div>
     </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="app-screen" class="screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>EventTracker<span class="brand-dot">.</span></span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="schedule">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="#" class="nav-item" data-section="add">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    <span>Add Event</span>
+                </a>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="user-card">
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span id="user-display-name" class="user-name">Admin</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn-logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile Top Bar -->
+        <header class="mobile-header">
+            <button id="mobile-menu-btn" class="mobile-menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="mobile-brand">
+                <i class="fa-solid fa-calendar-check"></i>
+                EventTracker<span class="brand-dot">.</span>
+            </div>
+            <button id="mobile-add-btn" class="mobile-add-btn">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main">
+            <!-- -- DASHBOARD SECTION -- -->
+            <section id="section-dashboard" class="section active">
+                <div class="section-header">
+                    <div>
+                        <h1 class="section-title">Dashboard</h1>
+                        <p class="section-subtitle">Overview of your events and spending</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showSection('add')">
+                            <i class="fa-solid fa-plus"></i> New Event
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-total-cost">
+                        <div class="stat-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-total">$0.00</span>
+                            <span class="stat-label">Total Spent (Attended)</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-events">
+                        <div class="stat-icon"><i class="fa-solid fa-calendar"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-events">0</span>
+                            <span class="stat-label">Total Events</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-attended">
+                        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-attended">0</span>
+                            <span class="stat-label">Attended</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-cancelled">
+                        <div class="stat-icon"><i class="fa-solid fa-cloud-rain"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-cancelled">0</span>
+                            <span class="stat-label">Cancelled</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-pending-card">
+                        <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-pending">0</span>
+                            <span class="stat-label">Upcoming / Pending</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-saved">
+                        <div class="stat-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="dash-saved">$0.00</span>
+                            <span class="stat-label">Cancelled Event Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity / Upcoming -->
+                <div class="dashboard-panels">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> Upcoming Events</h3>
+                        </div>
+                        <div id="upcoming-list" class="panel-body">
+                            <div class="panel-empty">No upcoming events</div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-chart-simple"></i> Quick Summary</h3>
+                        </div>
+                        <div id="summary-panel" class="panel-body">
+                            <div class="panel-empty">No data yet</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- -- SCHEDULE SECTION -- -->
+            <section id="section-schedule" class="section">
+                <div class="section-header">
+                    <div>
+                        <h1 class="section-title">Schedule</h1>
+                        <p class="section-subtitle">All events organized by date</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="filter-group">
+                            <button class="filter-chip active" data-filter="all">
+                                <i class="fa-solid fa-layer-group"></i> All
+                            </button>
+                            <button class="filter-chip" data-filter="pending">
+                                <i class="fa-solid fa-clock"></i> Pending
+                            </button>
+                            <button class="filter-chip" data-filter="attended">
+                                <i class="fa-solid fa-circle-check"></i> Attended
+                            </button>
+                            <button class="filter-chip" data-filter="cancelled">
+                                <i class="fa-solid fa-ban"></i> Cancelled
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule List grouped by month -->
+                <div id="schedule-container" class="schedule-container">
+                    <div class="schedule-loading">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        Loading schedule...
+                    </div>
+                </div>
+                <div id="schedule-empty" class="schedule-empty" style="display:none;">
+                    <i class="fa-regular fa-calendar-xmark"></i>
+                    <h3>No Events Found</h3>
+                    <p>Add your first event to get started.</p>
+                    <button class="btn btn-primary" onclick="showSection('add')">
+                        <i class="fa-solid fa-plus"></i> Add Event
+                    </button>
+                </div>
+            </section>
+
+            <!-- -- ADD / EDIT EVENT SECTION -- -->
+            <section id="section-add" class="section">
+                <div class="section-header">
+                    <div>
+                        <h1 class="section-title" id="form-section-title">
+                            <i class="fa-solid fa-circle-plus"></i> Add Event
+                        </h1>
+                        <p class="section-subtitle" id="form-section-sub">Enter event details below</p>
+                    </div>
+                </div>
+
+                <div class="form-panel">
+                    <form id="event-form" autocomplete="off">
+                        <input type="hidden" id="edit-event-id">
+
+                        <div class="form-grid">
+                            <div class="form-field full-width">
+                                <label for="event-name">
+                                    <i class="fa-solid fa-tag"></i> Event Name
+                                </label>
+                                <input type="text" id="event-name" placeholder="e.g., Saturday Night Showdown" required maxlength="150">
+                            </div>
+
+                            <div class="form-field full-width">
+                                <label for="event-description">
+                                    <i class="fa-solid fa-align-left"></i> Event Description
+                                    <span class="field-optional">(optional)</span>
+                                </label>
+                                <textarea id="event-description" placeholder="e.g., Doors open at 6pm, VIP section included, bring ticket..." maxlength="300" rows="3"></textarea>
+                                <span class="field-hint" id="description-char-count">0 / 300</span>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="event-date-input">
+                                    <i class="fa-regular fa-calendar"></i> Event Date
+                                </label>
+                                <input type="text" id="event-date-input" placeholder="e.g., June 13 2026, 6/13/2026, etc." required>
+                                <span class="field-hint" id="date-preview"></span>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="event-cost">
+                                    <i class="fa-solid fa-dollar-sign"></i> Event Cost
+                                </label>
+                                <div class="cost-input-wrap">
+                                    <span class="cost-prefix">$</span>
+                                    <input type="number" id="event-cost" placeholder="0.00" required min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary btn-lg" id="form-submit-btn">
+                                <i class="fa-solid fa-plus" id="form-submit-icon"></i>
+                                <span id="form-submit-text">Add Event</span>
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-lg" id="form-cancel-btn" style="display:none;" onclick="cancelEdit()">
+                                <i class="fa-solid fa-xmark"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- -- CONFIRM MODAL (generic ? used for delete, attended, rain-out, undo) -- -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-icon" id="modal-icon">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure?</p>
+            <div class="modal-btns">
+                <button id="modal-cancel-btn" class="btn btn-ghost">Cancel</button>
+                <button id="modal-confirm-btn" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- -- EVENT DETAIL MODAL (popup when clicking/pressing an event) -- -->
+    <div id="event-detail-modal" class="modal-overlay">
+        <div class="modal-card modal-card-detail">
+            <button id="detail-close-btn" class="detail-close-btn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="detail-header">
+                <div class="detail-status-badge" id="detail-badge"></div>
+                <h2 class="detail-title" id="detail-title">Event Name</h2>
+                <p class="detail-description" id="detail-description"></p>
+            </div>
+
+            <div class="detail-body">
+                <div class="detail-row">
+                    <div class="detail-row-icon"><i class="fa-regular fa-calendar"></i></div>
+                    <div class="detail-row-content">
+                        <span class="detail-row-label">Date</span>
+                        <span class="detail-row-value" id="detail-date">?</span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-row-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div class="detail-row-content">
+                        <span class="detail-row-label">Cost</span>
+                        <span class="detail-row-value" id="detail-cost">$0.00</span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-row-icon"><i class="fa-solid fa-signal"></i></div>
+                    <div class="detail-row-content">
+                        <span class="detail-row-label">Status</span>
+                        <span class="detail-row-value" id="detail-status">Pending</span>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+
+           
+        </div>
+    </div>
+
+    <!-- -- TOAST -- -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- -- OVERLAY for mobile sidebar -- -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <script src="script.js"></script>
 </body>
 </html>
